@@ -73,3 +73,11 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# JetBrains Rider / Visual Studio IDE 설정
+.idea/
+.vs/
+
+# 빌드된 플러그인 산출물
+Plugins/**/Binaries/*
+Plugins/**/Intermediate/*
