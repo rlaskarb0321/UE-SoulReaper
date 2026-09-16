@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "MenuGameMode.generated.h"
+#include "MainMenuGameMode.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
-class SOULREAPER_API AMenuGameMode : public AGameModeBase
+class SOULREAPER_API AMainMenuGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 public:
-	AMenuGameMode();
+	AMainMenuGameMode();
 };

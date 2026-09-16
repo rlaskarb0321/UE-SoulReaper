@@ -4,34 +4,34 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "MainMenuWidget.generated.h"
+#include "MainMenu.generated.h"
 
 class UButton;
 /**
- * 
+ *
  */
 UCLASS()
-class SOULREAPER_API UMainMenuWidget : public UUserWidget
+class SOULREAPER_API UMainMenu : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 protected:
 	virtual void NativeConstruct() override;
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Menu")
 	TSoftObjectPtr<UWorld> LobbyLevel;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> PlayButton;
-	
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> QuitButton;
-	
+
 protected:
-	
+
 	UFUNCTION()
 	void HandlePlayClicked();
-	
+
 	UFUNCTION()
 	void HandleQuitClicked();
 };

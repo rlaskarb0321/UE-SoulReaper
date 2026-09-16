@@ -4,25 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "MenuPlayerController.generated.h"
+#include "MainMenuPlayerController.generated.h"
 
-class UMainMenuWidget;
+class UMainMenu;
 /**
- * 
+ *
  */
 UCLASS()
-class SOULREAPER_API AMenuPlayerController : public APlayerController
+class SOULREAPER_API AMainMenuPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
 protected:
 	virtual void BeginPlay() override;
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Menu")
-	TSubclassOf<UMainMenuWidget> MainMenuWidgetClass;
-	
+	TSubclassOf<UMainMenu> MainMenuWidgetClass;
+
 private:
 
 	UPROPERTY()
-	TObjectPtr<UMainMenuWidget> MainMenuWidget;
+	TObjectPtr<UMainMenu> MainMenuWidget;
 };

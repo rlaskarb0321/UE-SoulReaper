@@ -7,11 +7,11 @@
 #include "LobbyMenu.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class SOULREAPER_API ULobbyMenu : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 };
