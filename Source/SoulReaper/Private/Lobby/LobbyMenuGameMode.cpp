@@ -3,3 +3,10 @@
 
 #include "Lobby/LobbyMenuGameMode.h"
 
+#include "Lobby/LobbyMenuPlayerController.h"
+
+ALobbyMenuGameMode::ALobbyMenuGameMode()
+{
+	PlayerControllerClass = ALobbyMenuPlayerController::StaticClass();
+	DefaultPawnClass = nullptr;
+}

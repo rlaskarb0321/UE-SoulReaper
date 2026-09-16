@@ -14,4 +14,6 @@ class SOULREAPER_API ALobbyMenuGameMode : public AGameMode
 {
 	GENERATED_BODY()
 	
+public:
+	ALobbyMenuGameMode();
 };
