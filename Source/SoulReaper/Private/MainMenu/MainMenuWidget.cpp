@@ -36,5 +36,6 @@ void UMainMenuWidget::HandlePlayClicked()
 
 void UMainMenuWidget::HandleQuitClicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Quit Button Clicked"));
+	UKismetSystemLibrary::QuitGame
+	(this, GetOwningPlayer(), EQuitPreference::Quit, false);
 }
