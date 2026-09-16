@@ -4,6 +4,7 @@
 #include "MainMenu/MainMenuWidget.h"
 
 #include "Components/Button.h"
+#include "Kismet/GameplayStatics.h"
 
 void UMainMenuWidget::NativeConstruct()
 {
@@ -22,7 +23,15 @@ void UMainMenuWidget::NativeConstruct()
 
 void UMainMenuWidget::HandlePlayClicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Play Button Clicked"));
+	if (LobbyLevel.IsNull())
+	{
+		UE_LOG(LogTemp, Error, TEXT("[UMainMenuWidget::HandlePlayClicked] Lobby is not set"));
+		return;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("[UMainMenuWidget::HandlePlayClicked] Open Level : %s"),
+		*LobbyLevel.GetAssetName());
+	UGameplayStatics::OpenLevelBySoftObjectPtr(this, LobbyLevel);
 }
 
 void UMainMenuWidget::HandleQuitClicked()

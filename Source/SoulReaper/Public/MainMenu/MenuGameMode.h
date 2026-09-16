@@ -14,4 +14,6 @@ class SOULREAPER_API AMenuGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	AMenuGameMode();
 };

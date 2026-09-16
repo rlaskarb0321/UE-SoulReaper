@@ -17,6 +17,9 @@ class SOULREAPER_API UMainMenuWidget : public UUserWidget
 	
 protected:
 	virtual void NativeConstruct() override;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Menu")
+	TSoftObjectPtr<UWorld> LobbyLevel;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> PlayButton;

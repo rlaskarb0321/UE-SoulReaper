@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "MenuPlayerController.generated.h"
 
+class UMainMenuWidget;
 /**
  * 
  */
@@ -14,4 +15,14 @@ class SOULREAPER_API AMenuPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Menu")
+	TSubclassOf<UMainMenuWidget> MainMenuWidgetClass;
+	
+private:
+
+	UPROPERTY()
+	TObjectPtr<UMainMenuWidget> MainMenuWidget;
 };

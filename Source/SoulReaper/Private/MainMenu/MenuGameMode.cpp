@@ -3,3 +3,10 @@
 
 #include "MainMenu/MenuGameMode.h"
 
+#include "MainMenu/MenuPlayerController.h"
+
+AMenuGameMode::AMenuGameMode()
+{
+	PlayerControllerClass = AMenuPlayerController::StaticClass();
+	DefaultPawnClass = nullptr;
+}
