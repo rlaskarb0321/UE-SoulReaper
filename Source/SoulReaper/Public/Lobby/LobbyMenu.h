@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyMenu.generated.h"
 
+struct FLobbyPlayerEntry;
 /**
  *
  */
@@ -14,4 +15,6 @@ class SOULREAPER_API ULobbyMenu : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	void RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries);
 };

@@ -23,6 +23,7 @@ protected:
 	TSubclassOf<ULobbyMenu> LobbyMenuWidgetClass;
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 private:
 	UPROPERTY()
@@ -30,4 +31,10 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetReady(bool bInIsReady);
+	
+	void BindToLobbyGameState();
+	void HandleGameStateSet(AGameStateBase* NewGameState);
+	
+	UFUNCTION()
+	void HandleLobbyPlayersChanged();
 };

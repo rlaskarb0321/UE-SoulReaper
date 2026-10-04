@@ -3,14 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Object.h"
 #include "LobbyTypes.generated.h"
 
 /**
  * 
  */
-UCLASS()
-class SOULREAPER_API ULobbyTypes : public UObject
+
+USTRUCT(BlueprintType)
+struct FLobbyPlayerEntry
 {
 	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "SoulReaper|Lobby")
+	FString PlayerName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SoulReaper|Lobby")
+	bool bIsReady = false;
 };
