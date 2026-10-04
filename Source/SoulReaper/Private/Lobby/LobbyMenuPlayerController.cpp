@@ -4,10 +4,15 @@
 #include "Lobby/LobbyMenuPlayerController.h"
 
 #include "Lobby/LobbyMenu.h"
+#include "Lobby/LobbyPlayerState.h"
+
 
 void ALobbyMenuPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (IsLocalController() == false)
+		return;
 	
 	if (LobbyMenuWidgetClass == nullptr)
 	{
@@ -25,4 +30,21 @@ void ALobbyMenuPlayerController::BeginPlay()
 	LobbyMenuWidget->AddToViewport();
 	bShowMouseCursor = true;
 	SetInputMode(FInputModeUIOnly());
+}
+
+void ALobbyMenuPlayerController::Server_SetReady_Implementation(bool bInIsReady)
+{
+	ALobbyPlayerState* LobbyPlayerState = GetPlayerState<ALobbyPlayerState>();
+	if (LobbyPlayerState == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ALobbyMenuPlayerController::Server_SetReady_Implementation] LobbyPlayerState is nullptr"));
+		return;
+	}
+	
+	LobbyPlayerState->SetIsReady(bInIsReady);
+}
+
+void ALobbyMenuPlayerController::RequestSetReady(bool bInIsReady)
+{
+	Server_SetReady(bInIsReady);
 }
