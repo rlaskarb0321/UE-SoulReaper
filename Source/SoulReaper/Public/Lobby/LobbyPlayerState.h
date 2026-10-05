@@ -7,24 +7,18 @@
 #include "LobbyPlayerState.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class SOULREAPER_API ALobbyPlayerState : public APlayerState
 {
 	GENERATED_BODY()
-	
-public:
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	
-	bool IsReady() const { return bIsReady; }
-	
-	void SetIsReady(bool bInIsReady);
-	
-private:
-	UPROPERTY(ReplicatedUsing = OnRep_IsReady)
-	bool bIsReady = false;
 
-	UFUNCTION()
-	void OnRep_IsReady();
+public:
+	// 서버에서만 유효한 값. 클라는 ALobbyGameState::GetLobbyPlayers() 를 사용한다.
+	bool IsReady() const { return bIsReady; }
+	void SetIsReady(bool bInIsReady);
+
+private:
+	bool bIsReady = false;
 };

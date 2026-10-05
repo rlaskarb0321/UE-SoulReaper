@@ -6,105 +6,74 @@
 #include "Lobby/LobbyGameState.h"
 #include "Lobby/LobbyMenu.h"
 #include "Lobby/LobbyPlayerState.h"
-#include "Lobby/LobbyTypes.h"
 
 
 void ALobbyMenuPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (IsLocalController() == false)
 		return;
-	
+
 	if (LobbyMenuWidgetClass == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[LobbyMenuPlayerController::BeginPlay] LobbyMenuWidgetClass is nullptr"));
 		return;
 	}
-	
+
 	LobbyMenuWidget = CreateWidget<ULobbyMenu>(this, LobbyMenuWidgetClass);
 	if (LobbyMenuWidget == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[LobbyMenuPlayerController::BeginPlay] LobbyMenuWidget is not created"));
 		return;
 	}
-	
+
 	LobbyMenuWidget->AddToViewport();
 	bShowMouseCursor = true;
 	SetInputMode(FInputModeUIOnly());
-	BindToLobbyGameState();
+
+	// 클라에선 GameState 가 아직 오지 않았을 수 있으니, 없으면 GameStateSet 이벤트로 기다린다
+	UWorld* World = GetWorld();
+	if (ALobbyGameState* LobbyGS = World->GetGameState<ALobbyGameState>())
+	{
+		BindLobbyGameState(LobbyGS);
+	}
+	else
+	{
+		GameStateSetHandle = World->GameStateSetEvent.AddUObject(this, &ALobbyMenuPlayerController::OnGameStateSet);
+	}
 }
 
-void ALobbyMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void ALobbyMenuPlayerController::OnGameStateSet(AGameStateBase* NewGameState)
 {
+	ALobbyGameState* LobbyGS = Cast<ALobbyGameState>(NewGameState);
+	if (LobbyGS == nullptr)
+		return;
+
 	if (UWorld* World = GetWorld())
 	{
-		World->GameStateSetEvent.RemoveAll(this);
-
-		if (ALobbyGameState* LobbyGameState = World->GetGameState<ALobbyGameState>())
-		{
-			LobbyGameState->OnLobbyPlayersChanged.RemoveDynamic(
-				this, &ALobbyMenuPlayerController::HandleLobbyPlayersChanged);
-		}
+		World->GameStateSetEvent.Remove(GameStateSetHandle);
 	}
+	GameStateSetHandle.Reset();
 
-	
-	Super::EndPlay(EndPlayReason);
+	BindLobbyGameState(LobbyGS);
 }
 
-void ALobbyMenuPlayerController::BindToLobbyGameState()
+void ALobbyMenuPlayerController::BindLobbyGameState(ALobbyGameState* LobbyGameState)
 {
-	if (AGameStateBase* ExistingGameState = GetWorld()->GetGameState())
-	{
-		HandleGameStateSet(ExistingGameState);
-		return;
-	}
-	
-	GetWorld()->GameStateSetEvent.AddUObject(this, &ALobbyMenuPlayerController::HandleGameStateSet);
+	BoundLobbyGameState = LobbyGameState;
+	LobbyGameState->OnLobbyPlayersChanged.AddUniqueDynamic(this, &ALobbyMenuPlayerController::RefreshLobbyMenu);
+
+	// 바인딩 전에 이미 도착한 목록을 놓치지 않도록 한 번 직접 갱신
+	RefreshLobbyMenu();
 }
 
-void ALobbyMenuPlayerController::HandleGameStateSet(AGameStateBase* NewGameState)
+void ALobbyMenuPlayerController::RefreshLobbyMenu()
 {
-	if (ALobbyGameState* LobbyGameState = Cast<ALobbyGameState>(NewGameState))
-	{
-		LobbyGameState->OnLobbyPlayersChanged.AddUniqueDynamic(this, &ALobbyMenuPlayerController::HandleLobbyPlayersChanged);
+	if (LobbyMenuWidget == nullptr || BoundLobbyGameState.IsValid() == false)
 		return;
-	}
-	
-	UE_LOG(LogTemp, Error, TEXT("[ALobbyMenuPlayerController::HandleGameStateSet] LobbyGameState is nullptr"));
-}
 
-void ALobbyMenuPlayerController::HandleLobbyPlayersChanged()
-{
-	if (LobbyMenuWidget == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[LobbyMenuPlayerController::HandleLobbyPlayersChanged] LobbyMenuWidget is not created"));
-		return;
-	}
-	
-	const ALobbyGameState* LobbyGameState = GetWorld()->GetGameState<ALobbyGameState>();
-	if (LobbyGameState == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ALobbyMenuPlayerController::HandleLobbyPlayersChanged] LobbyGameState is nullptr"))
-		return;
-	}
-
-	TArray<FLobbyPlayerEntry> Entries;
-	Entries.Reserve(LobbyGameState->PlayerArray.Num());
-	
-	for (const APlayerState* CurrentPlayerState : LobbyGameState->PlayerArray)
-	{
-		const ALobbyPlayerState* LobbyPlayerState = Cast<const ALobbyPlayerState>(CurrentPlayerState);
-		if (LobbyPlayerState == nullptr)
-			continue;
-
-		FLobbyPlayerEntry& Entry = Entries.AddDefaulted_GetRef();
-		
-		Entry.PlayerName = LobbyPlayerState->GetPlayerName();
-		Entry.bIsReady = LobbyPlayerState->IsReady();
-	}
-	
-	LobbyMenuWidget->RefreshPlayers(Entries);
+	LobbyMenuWidget->RefreshPlayers(BoundLobbyGameState->GetLobbyPlayers());
 }
 
 void ALobbyMenuPlayerController::Server_SetReady_Implementation(bool bInIsReady)
@@ -115,11 +84,27 @@ void ALobbyMenuPlayerController::Server_SetReady_Implementation(bool bInIsReady)
 		UE_LOG(LogTemp, Error, TEXT("[ALobbyMenuPlayerController::Server_SetReady_Implementation] LobbyPlayerState is nullptr"));
 		return;
 	}
-	
+
 	LobbyPlayerState->SetIsReady(bInIsReady);
 }
 
 void ALobbyMenuPlayerController::RequestSetReady(bool bInIsReady)
 {
 	Server_SetReady(bInIsReady);
+}
+
+void ALobbyMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GameStateSetEvent.Remove(GameStateSetHandle);
+	}
+	GameStateSetHandle.Reset();
+
+	if (BoundLobbyGameState.IsValid())
+	{
+		BoundLobbyGameState->OnLobbyPlayersChanged.RemoveDynamic(this, &ALobbyMenuPlayerController::RefreshLobbyMenu);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }

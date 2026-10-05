@@ -7,13 +7,15 @@
 #include "LobbyMenuGameMode.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class SOULREAPER_API ALobbyMenuGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	
+
 public:
 	ALobbyMenuGameMode();
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };

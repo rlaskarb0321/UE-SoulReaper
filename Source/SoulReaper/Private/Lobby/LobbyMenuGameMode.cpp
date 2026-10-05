@@ -14,3 +14,13 @@ ALobbyMenuGameMode::ALobbyMenuGameMode()
 	GameStateClass = ALobbyGameState::StaticClass();
 	DefaultPawnClass = nullptr;
 }
+
+void ALobbyMenuGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	if (ALobbyGameState* LobbyGS = GetGameState<ALobbyGameState>())
+	{
+		LobbyGS->RebuildLobbyPlayers();
+	}
+}

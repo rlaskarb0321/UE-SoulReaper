@@ -7,12 +7,11 @@
 
 void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[Widget] 갱신 — %d 명"), Entries.Num());
-
 	for (const FLobbyPlayerEntry& Entry : Entries)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Widget]   %s Ready=%s"),
-			*Entry.PlayerName,
+		UE_LOG(LogTemp, Warning, TEXT("[%s, Widget] %s Ready=%s"),
+			GetOwningPlayer()->HasAuthority() ? TEXT("Server") : TEXT("Client"),
+			Entry.PlayerName.IsEmpty() ? TEXT("EMPTY") : *Entry.PlayerName,
 			Entry.bIsReady ? TEXT("O") : TEXT("X"));
 	}
 }
