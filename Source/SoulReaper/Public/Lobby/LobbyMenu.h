@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyMenu.generated.h"
 
+class ULobbyPlayerSlot;
+class UVerticalBox;
 struct FLobbyPlayerEntry;
 /**
  *
@@ -17,4 +19,13 @@ class SOULREAPER_API ULobbyMenu : public UUserWidget
 
 public:
 	void RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries);
+	
+protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UVerticalBox> PlayerListBox;
+	
+	UPROPERTY()
+	TArray<TObjectPtr<ULobbyPlayerSlot>> PlayerSlots;
+	
+	virtual void NativeOnInitialized() override;
 };
