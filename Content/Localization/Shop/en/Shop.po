@@ -1,0 +1,50 @@
+﻿# Shop English translation.
+# Fill out your copyright notice in the Description page of Project Settings.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Shop\n"
+"POT-Creation-Date: 2026-10-15 10:01\n"
+"PO-Revision-Date: 2026-10-15 10:01\n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Key:	489786C14FB5A6950E0CE69CA612374E
+#. SourceLocation:	/Game/Shop/DT_ShopItemRow.DT_ShopItemRow.NewRow.Description
+#: /Game/Shop/DT_ShopItemRow.DT_ShopItemRow.NewRow.Description
+msgctxt ",489786C14FB5A6950E0CE69CA612374E"
+msgid "Test"
+msgstr "Test"
+
+#. Key:	914BBBBE4B058B3302A91BB718F5013A
+#. SourceLocation:	/Game/Shop/DT_ShopItemRow.DT_ShopItemRow.NewRow.DisplayName
+#: /Game/Shop/DT_ShopItemRow.DT_ShopItemRow.NewRow.DisplayName
+msgctxt ",914BBBBE4B058B3302A91BB718F5013A"
+msgid "Test"
+msgstr "Test"
+
+#. Key:	Ready
+#. SourceLocation:	Source/SoulReaper/Public/Lobby/LobbyPlayerSlot.h(32)
+#: Source/SoulReaper/Public/Lobby/LobbyPlayerSlot.h(32)
+msgctxt "Lobby,Ready"
+msgid "-Ready-"
+msgstr "-Ready-"
+
+#. Key:	Unready
+#. SourceLocation:	Source/SoulReaper/Public/Lobby/LobbyPlayerSlot.h(37)
+#: Source/SoulReaper/Public/Lobby/LobbyPlayerSlot.h(37)
+msgctxt "Lobby,Unready"
+msgid "-Unready-"
+msgstr "-Unready-"
+
+#. Key:	Host
+#. SourceLocation:	Source/SoulReaper/Public/Lobby/LobbyPlayerSlot.h(42)
+#: Source/SoulReaper/Public/Lobby/LobbyPlayerSlot.h(42)
+msgctxt "Lobby,Host"
+msgid "-Host-"
+msgstr "-Host-"
+
