@@ -6,6 +6,16 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyMenu.generated.h"
 
+// UENUM(BlueprintType)
+// enum class ELobbyRoute : uint8
+// {
+// 	None					UMETA(DisplayName = "None"),
+// 	ToggleReady             UMETA(DisplayName = "ToggleReady"),
+// 	
+// 	MAX						UMETA(Hidden)
+// };
+
+class UButton;
 class ULobbyPlayerSlot;
 class UVerticalBox;
 struct FLobbyPlayerEntry;
@@ -26,6 +36,13 @@ protected:
 	
 	UPROPERTY()
 	TArray<TObjectPtr<ULobbyPlayerSlot>> PlayerSlots;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> PlayButton;
 	
 	virtual void NativeOnInitialized() override;
+	
+private:
+	UFUNCTION()
+	void HandleReadyClicked();
 };

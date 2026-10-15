@@ -5,7 +5,6 @@
 
 #include "Lobby/LobbyGameState.h"
 #include "Lobby/LobbyMenu.h"
-#include "Lobby/LobbyPlayerState.h"
 
 
 void ALobbyMenuPlayerController::BeginPlay()
@@ -74,23 +73,6 @@ void ALobbyMenuPlayerController::RefreshLobbyMenu()
 		return;
 
 	LobbyMenuWidget->RefreshPlayers(BoundLobbyGameState->GetLobbyPlayers());
-}
-
-void ALobbyMenuPlayerController::Server_SetReady_Implementation(bool bInIsReady)
-{
-	ALobbyPlayerState* LobbyPlayerState = GetPlayerState<ALobbyPlayerState>();
-	if (LobbyPlayerState == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ALobbyMenuPlayerController::Server_SetReady_Implementation] LobbyPlayerState is nullptr"));
-		return;
-	}
-
-	LobbyPlayerState->SetIsReady(bInIsReady);
-}
-
-void ALobbyMenuPlayerController::RequestSetReady(bool bInIsReady)
-{
-	Server_SetReady(bInIsReady);
 }
 
 void ALobbyMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)

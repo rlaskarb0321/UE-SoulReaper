@@ -15,6 +15,9 @@ struct FLobbyPlayerEntry
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly, Category = "SoulReaper|Lobby")
+	int32 PlayerId = INDEX_NONE;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "SoulReaper|Lobby")
 	FString PlayerName;
 
 	UPROPERTY(BlueprintReadOnly, Category = "SoulReaper|Lobby")

@@ -3,7 +3,9 @@
 
 #include "Lobby/LobbyMenu.h"
 
+#include "Components/Button.h"
 #include "Components/VerticalBox.h"
+#include "Lobby/LobbyMenuPlayerController.h"
 #include "Lobby/LobbyPlayerSlot.h"
 #include "Lobby/LobbyTypes.h"
 
@@ -20,6 +22,8 @@ void ULobbyMenu::NativeOnInitialized()
 		
 		PlayerSlots.Add(PlayerSlot);
 	}
+	
+	PlayButton->OnClicked.AddUniqueDynamic(this, &ULobbyMenu::HandleReadyClicked);
 }
 
 void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
@@ -44,5 +48,13 @@ void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
 		}
 		
 		PlayerSlots[i]->SetEntry(Entries[i]);
+	}
+}
+
+void ULobbyMenu::HandleReadyClicked()
+{
+	if (ALobbyMenuPlayerController* LobbyPC = GetOwningPlayer<ALobbyMenuPlayerController>())
+	{
+		
 	}
 }

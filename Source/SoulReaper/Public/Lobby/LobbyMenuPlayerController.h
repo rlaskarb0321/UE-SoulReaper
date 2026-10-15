@@ -17,9 +17,6 @@ class SOULREAPER_API ALobbyMenuPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
-public:
-	void RequestSetReady(bool bInIsReady);
-
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Room Enter")
 	TSubclassOf<ULobbyMenu> LobbyMenuWidgetClass;
@@ -39,7 +36,4 @@ private:
 
 	UFUNCTION()
 	void RefreshLobbyMenu();
-
-	UFUNCTION(Server, Reliable)
-	void Server_SetReady(bool bInIsReady);
 };

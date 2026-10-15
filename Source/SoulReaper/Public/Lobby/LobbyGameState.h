@@ -21,19 +21,22 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "SoulReaper|Lobby")
 	FOnLobbyPlayersChanged OnLobbyPlayersChanged;
 
+public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-
+	void AddLobbyPlayer(const APlayerState* PlayerState);
+	
 	const TArray<FLobbyPlayerEntry>& GetLobbyPlayers() const { return LobbyPlayers; }
-
-	// 서버 전용. PlayerArray 를 읽어 LobbyPlayers 를 다시 만든다.
-	void RebuildLobbyPlayers();
 
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_LobbyPlayers)
 	TArray<FLobbyPlayerEntry> LobbyPlayers;
 
+	TMap<int32, int32> PlayerIdToLobbyPlayerIndex;
+	
+private:
 	UFUNCTION()
 	void OnRep_LobbyPlayers();
 
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+	void RebuildIndexCache();
 };
