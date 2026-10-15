@@ -22,4 +22,7 @@ struct FLobbyPlayerEntry
 
 	UPROPERTY(BlueprintReadOnly, Category = "SoulReaper|Lobby")
 	bool bIsReady = false;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "SoulReaper|Lobby")
+	bool bIsHost = false;
 };

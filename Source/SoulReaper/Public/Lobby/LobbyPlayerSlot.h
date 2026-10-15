@@ -37,4 +37,9 @@ protected:
 		static const FText Text = NSLOCTEXT("Lobby", "Unready", "-Unready-");
 		return Text;
 	}
+	static const FText& GetHostText()
+	{
+		static const FText Text = NSLOCTEXT("Lobby", "Host", "-Host-");
+		return Text;
+	}
 };

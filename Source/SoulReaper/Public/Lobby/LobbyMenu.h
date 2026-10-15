@@ -6,15 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyMenu.generated.h"
 
-// UENUM(BlueprintType)
-// enum class ELobbyRoute : uint8
-// {
-// 	None					UMETA(DisplayName = "None"),
-// 	ToggleReady             UMETA(DisplayName = "ToggleReady"),
-// 	
-// 	MAX						UMETA(Hidden)
-// };
-
+class UWidgetSwitcher;
 class UButton;
 class ULobbyPlayerSlot;
 class UVerticalBox;
@@ -22,6 +14,15 @@ struct FLobbyPlayerEntry;
 /**
  *
  */
+
+UENUM(BlueprintType)
+enum class EPlayButtonSwitcher : uint8
+{
+	Client	= 0			UMETA(DisplayName = "Client"),
+	Host	= 1			UMETA(DisplayName = "Host"),
+	MAX					UMETA(Hidden)
+};
+
 UCLASS()
 class SOULREAPER_API ULobbyMenu : public UUserWidget
 {
@@ -34,15 +35,24 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> PlayerListBox;
 	
-	UPROPERTY()
-	TArray<TObjectPtr<ULobbyPlayerSlot>> PlayerSlots;
-
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> PlayButton;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> HostButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UWidgetSwitcher> PlayButtonSwitcher;
+	
+	UPROPERTY()
+	TArray<TObjectPtr<ULobbyPlayerSlot>> PlayerSlots;
 	
 	virtual void NativeOnInitialized() override;
 	
 private:
 	UFUNCTION()
 	void HandleReadyClicked();
+	
+	UFUNCTION()
+	void HandleHostButtonClicked();
 };

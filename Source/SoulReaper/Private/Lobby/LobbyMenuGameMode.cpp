@@ -21,6 +21,6 @@ void ALobbyMenuGameMode::PostLogin(APlayerController* NewPlayer)
 
 	if (ALobbyGameState* LobbyGS = GetGameState<ALobbyGameState>())
 	{
-		LobbyGS->AddLobbyPlayer(NewPlayer->PlayerState);
+		LobbyGS->AddLobbyPlayer(NewPlayer);
 	}
 }

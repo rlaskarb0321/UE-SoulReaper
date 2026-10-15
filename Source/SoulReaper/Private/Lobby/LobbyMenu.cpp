@@ -5,6 +5,7 @@
 
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
+#include "Components/WidgetSwitcher.h"
 #include "Lobby/ELobbyRoute.h"
 #include "Lobby/LobbyMenuPlayerController.h"
 #include "Lobby/LobbyPlayerSlot.h"
@@ -26,6 +27,7 @@ void ULobbyMenu::NativeOnInitialized()
 	}
 	
 	PlayButton->OnClicked.AddUniqueDynamic(this, &ULobbyMenu::HandleReadyClicked);
+	HostButton->OnClicked.AddUniqueDynamic(this, &ULobbyMenu::HandleHostButtonClicked);
 }
 
 void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
@@ -41,6 +43,12 @@ void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
 		return;
 	}
 	
+	const APlayerController* OwningController = GetOwningPlayer();
+	const bool bIsHost = OwningController != nullptr && OwningController->HasAuthority();
+	
+	PlayButtonSwitcher->SetActiveWidgetIndex(static_cast<int32>(
+		bIsHost ? EPlayButtonSwitcher::Host : EPlayButtonSwitcher::Client));
+	
 	for (int32 i = 0; i < PlayerSlots.Num(); i++)
 	{
 		if (Entries.IsValidIndex(i) == false)
@@ -48,7 +56,7 @@ void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
 			PlayerSlots[i]->SetEmpty();
 			continue;
 		}
-		
+
 		PlayerSlots[i]->SetEntry(Entries[i]);
 	}
 }
@@ -64,4 +72,25 @@ void ULobbyMenu::HandleReadyClicked()
 		return;
 	
 	RequestHandler->HandleRequest(static_cast<int32>(ELobbyRoute::ToggleReady));
+}
+
+void ULobbyMenu::HandleHostButtonClicked()
+{
+	const APlayerController* OwningController = GetOwningPlayer();
+	if (OwningController == nullptr)
+		return;
+	
+	const bool bIsHost = OwningController->HasAuthority();
+	if (bIsHost == false)
+		return;
+	
+	ALobbyMenuPlayerController* LobbyPC = GetOwningPlayer<ALobbyMenuPlayerController>();
+	if (LobbyPC == nullptr)
+		return;
+	
+	IRequestHandler* RequestHandler = Cast<IRequestHandler>(LobbyPC);
+	if (RequestHandler == nullptr)
+		return;
+	
+	RequestHandler->HandleRequest(static_cast<int32>(ELobbyRoute::EnterGame));
 }

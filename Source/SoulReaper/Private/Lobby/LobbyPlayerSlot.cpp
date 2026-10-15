@@ -12,7 +12,14 @@ void ULobbyPlayerSlot::SetEntry(const FLobbyPlayerEntry& Entry)
 		return;
 	
 	PlayerName->SetText(FText::FromString(Entry.PlayerName));
-	ReadyIndicator->SetText(Entry.bIsReady ? GetReadyText() : GetUnreadyText());
+	if (Entry.bIsHost)
+	{
+		ReadyIndicator->SetText(GetHostText());
+	}
+	else
+	{
+		ReadyIndicator->SetText(Entry.bIsReady ? GetReadyText() : GetUnreadyText());
+	}
 	ReadyIndicator->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 

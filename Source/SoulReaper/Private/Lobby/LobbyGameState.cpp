@@ -35,20 +35,25 @@ void ALobbyGameState::HandleLobbyRequest(int32 InRequesterId, int32 InPayload)
 		OnLobbyPlayersChanged.Broadcast();
 		break;
 		
+	case ELobbyRoute::EnterGame:
+		
+		break;
+			
 	default:
 		break;
 	}
 }
 
-void ALobbyGameState::AddLobbyPlayer(const APlayerState* PlayerState)
+void ALobbyGameState::AddLobbyPlayer(const APlayerController* InPlayerController)
 {
-	if (HasAuthority() == false || PlayerState == nullptr)
+	if (HasAuthority() == false || InPlayerController == nullptr)
 		return;
 	
 	FLobbyPlayerEntry& Entry = LobbyPlayers.AddDefaulted_GetRef();
-	Entry.PlayerId = PlayerState->GetPlayerId();
-	Entry.PlayerName = PlayerState->GetPlayerName();
+	Entry.PlayerId = InPlayerController->PlayerState->GetPlayerId();
+	Entry.PlayerName = InPlayerController->PlayerState->GetPlayerName();
 	Entry.bIsReady = false;
+	Entry.bIsHost = InPlayerController->IsLocalController();
 	
 	OnRep_LobbyPlayers();
 }
