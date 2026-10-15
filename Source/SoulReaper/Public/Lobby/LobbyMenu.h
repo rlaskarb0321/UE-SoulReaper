@@ -32,6 +32,10 @@ public:
 	void RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries);
 	
 protected:
+
+	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Lobby")
+	TSoftObjectPtr<UWorld> MainMenuLevel;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> PlayerListBox;
 	
@@ -44,6 +48,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWidgetSwitcher> PlayButtonSwitcher;
 	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> LeaveButton;
+	
 	UPROPERTY()
 	TArray<TObjectPtr<ULobbyPlayerSlot>> PlayerSlots;
 	
@@ -55,4 +62,7 @@ private:
 	
 	UFUNCTION()
 	void HandleHostButtonClicked();
+	
+	UFUNCTION()
+	void HandleLeaveButtonClicked();
 };

@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
 #include "Components/WidgetSwitcher.h"
+#include "Kismet/GameplayStatics.h"
 #include "Lobby/ELobbyRoute.h"
 #include "Lobby/LobbyMenuPlayerController.h"
 #include "Lobby/LobbyPlayerSlot.h"
@@ -28,6 +29,7 @@ void ULobbyMenu::NativeOnInitialized()
 	
 	PlayButton->OnClicked.AddUniqueDynamic(this, &ULobbyMenu::HandleReadyClicked);
 	HostButton->OnClicked.AddUniqueDynamic(this, &ULobbyMenu::HandleHostButtonClicked);
+	LeaveButton->OnClicked.AddUniqueDynamic(this, &ULobbyMenu::HandleLeaveButtonClicked);
 }
 
 void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
@@ -93,4 +95,15 @@ void ULobbyMenu::HandleHostButtonClicked()
 		return;
 	
 	RequestHandler->HandleRequest(static_cast<int32>(ELobbyRoute::EnterGame));
+}
+
+void ULobbyMenu::HandleLeaveButtonClicked()
+{
+	if (MainMenuLevel.IsNull())
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ULobbyMenu::HandleLeaveButtonClicked] MainMenu is Null"));
+		return;
+	}
+
+	UGameplayStatics::OpenLevelBySoftObjectPtr(this, MainMenuLevel);
 }

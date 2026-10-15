@@ -31,14 +31,20 @@ void ALobbyGameState::HandleLobbyRequest(int32 InRequesterId, int32 InPayload)
 	switch (LobbyRoute)
 	{
 	case ELobbyRoute::ToggleReady:
+		if (Entry.bIsHost)
+			break;		
+
 		Entry.bIsReady = !Entry.bIsReady;
 		OnLobbyPlayersChanged.Broadcast();
 		break;
 		
 	case ELobbyRoute::EnterGame:
-		
+		if (Entry.bIsHost == false)
+			break;
+
+		HandleEnterGameRequest();
 		break;
-			
+		
 	default:
 		break;
 	}
@@ -52,8 +58,8 @@ void ALobbyGameState::AddLobbyPlayer(const APlayerController* InPlayerController
 	FLobbyPlayerEntry& Entry = LobbyPlayers.AddDefaulted_GetRef();
 	Entry.PlayerId = InPlayerController->PlayerState->GetPlayerId();
 	Entry.PlayerName = InPlayerController->PlayerState->GetPlayerName();
-	Entry.bIsReady = false;
 	Entry.bIsHost = InPlayerController->IsLocalController();
+	Entry.bIsReady = Entry.bIsHost;		
 	
 	OnRep_LobbyPlayers();
 }
@@ -81,6 +87,16 @@ void ALobbyGameState::OnRep_LobbyPlayers()
 	OnLobbyPlayersChanged.Broadcast();
 }
 
+bool ALobbyGameState::IsAllReady() const
+{
+	for (const FLobbyPlayerEntry& Player : LobbyPlayers)
+	{
+		if (Player.bIsReady == false)
+			return false;
+	}
+	return true;
+}
+
 void ALobbyGameState::RebuildIndexCache()
 {
 	PlayerIdToLobbyPlayerIndex.Reset();
@@ -88,4 +104,13 @@ void ALobbyGameState::RebuildIndexCache()
 	{
 		PlayerIdToLobbyPlayerIndex.Add(LobbyPlayers[i].PlayerId, i);
 	}
+}
+
+void ALobbyGameState::HandleEnterGameRequest()
+{
+	const bool bIsAllReady = IsAllReady();
+	if (bIsAllReady == false)
+		return;
+	
+	
 }

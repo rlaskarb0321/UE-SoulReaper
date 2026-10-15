@@ -41,4 +41,6 @@ private:
 
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 	void RebuildIndexCache();
+	void HandleEnterGameRequest();
+	bool IsAllReady() const;
 };
