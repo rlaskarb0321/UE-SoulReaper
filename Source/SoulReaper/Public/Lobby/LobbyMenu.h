@@ -32,7 +32,6 @@ public:
 	void RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries);
 	
 protected:
-
 	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Lobby")
 	TSoftObjectPtr<UWorld> MainMenuLevel;
 	
