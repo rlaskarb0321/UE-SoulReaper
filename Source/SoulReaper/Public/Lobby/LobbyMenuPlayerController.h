@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Network/Request/RequestHandler.h"
 #include "LobbyMenuPlayerController.generated.h"
 
 class AGameStateBase;
@@ -13,10 +14,14 @@ class ULobbyMenu;
  *
  */
 UCLASS()
-class SOULREAPER_API ALobbyMenuPlayerController : public APlayerController
+class SOULREAPER_API ALobbyMenuPlayerController : public APlayerController, public IRequestHandler
 {
 	GENERATED_BODY()
 
+public:
+	UFUNCTION(Server, Reliable)
+	virtual void HandleRequest(int32 InPayload) override;
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Room Enter")
 	TSubclassOf<ULobbyMenu> LobbyMenuWidgetClass;
@@ -31,6 +36,7 @@ private:
 	TWeakObjectPtr<ALobbyGameState> BoundLobbyGameState;
 	FDelegateHandle GameStateSetHandle;
 
+private:
 	void OnGameStateSet(AGameStateBase* NewGameState);
 	void BindLobbyGameState(ALobbyGameState* LobbyGameState);
 

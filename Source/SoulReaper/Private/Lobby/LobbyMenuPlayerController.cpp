@@ -3,6 +3,7 @@
 
 #include "Lobby/LobbyMenuPlayerController.h"
 
+#include "GameFramework/PlayerState.h"
 #include "Lobby/LobbyGameState.h"
 #include "Lobby/LobbyMenu.h"
 
@@ -73,6 +74,15 @@ void ALobbyMenuPlayerController::RefreshLobbyMenu()
 		return;
 
 	LobbyMenuWidget->RefreshPlayers(BoundLobbyGameState->GetLobbyPlayers());
+}
+
+void ALobbyMenuPlayerController::HandleRequest_Implementation(int32 InPayload)
+{
+	ALobbyGameState* LobbyGameState = GetWorld()->GetGameState<ALobbyGameState>();
+	if (LobbyGameState == nullptr)
+		return;
+	
+	LobbyGameState->HandleLobbyRequest(PlayerState->GetPlayerId(), InPayload);
 }
 
 void ALobbyMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)

@@ -5,9 +5,11 @@
 
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
+#include "Lobby/ELobbyRoute.h"
 #include "Lobby/LobbyMenuPlayerController.h"
 #include "Lobby/LobbyPlayerSlot.h"
 #include "Lobby/LobbyTypes.h"
+#include "Network/Request/RequestHandler.h"
 
 void ULobbyMenu::NativeOnInitialized()
 {
@@ -53,8 +55,13 @@ void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
 
 void ULobbyMenu::HandleReadyClicked()
 {
-	if (ALobbyMenuPlayerController* LobbyPC = GetOwningPlayer<ALobbyMenuPlayerController>())
-	{
-		
-	}
+	ALobbyMenuPlayerController* LobbyPC = GetOwningPlayer<ALobbyMenuPlayerController>();
+	if (LobbyPC == nullptr)
+		return;
+	
+	IRequestHandler* RequestHandler = Cast<IRequestHandler>(LobbyPC);
+	if (RequestHandler == nullptr)
+		return;
+	
+	RequestHandler->HandleRequest(static_cast<int32>(ELobbyRoute::ToggleReady));
 }

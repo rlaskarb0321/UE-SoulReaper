@@ -23,6 +23,8 @@ public:
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	void HandleLobbyRequest(int32 InRequesterId, int32 InPayload);
 	void AddLobbyPlayer(const APlayerState* PlayerState);
 	
 	const TArray<FLobbyPlayerEntry>& GetLobbyPlayers() const { return LobbyPlayers; }

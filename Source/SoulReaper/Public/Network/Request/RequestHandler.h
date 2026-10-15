@@ -21,5 +21,5 @@ class SOULREAPER_API IRequestHandler
 	GENERATED_BODY()
 
 public:
-	virtual bool CanHandleRequest(int32 InPayload) = 0;
+	virtual void HandleRequest(int32 InPayload) = 0;
 };

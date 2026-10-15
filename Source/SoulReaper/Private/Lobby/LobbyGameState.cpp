@@ -4,6 +4,7 @@
 #include "Lobby/LobbyGameState.h"
 
 #include "GameFramework/PlayerState.h"
+#include "Lobby/ELobbyRoute.h"
 #include "Net/UnrealNetwork.h"
 
 void ALobbyGameState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -11,6 +12,32 @@ void ALobbyGameState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ALobbyGameState, LobbyPlayers);
+}
+
+void ALobbyGameState::HandleLobbyRequest(int32 InRequesterId, int32 InPayload)
+{
+	if (HasAuthority() == false)
+		return;
+	if (InPayload <= static_cast<int32>(ELobbyRoute::None) || InPayload >= static_cast<int32>(ELobbyRoute::MAX))
+		return;
+	
+	const int32* Index = PlayerIdToLobbyPlayerIndex.Find(InRequesterId);
+	if (Index == nullptr || LobbyPlayers.IsValidIndex(*Index) == false)
+		return;
+
+	FLobbyPlayerEntry& Entry = LobbyPlayers[*Index];
+	ELobbyRoute LobbyRoute = static_cast<ELobbyRoute>(InPayload);
+
+	switch (LobbyRoute)
+	{
+	case ELobbyRoute::ToggleReady:
+		Entry.bIsReady = !Entry.bIsReady;
+		OnLobbyPlayersChanged.Broadcast();
+		break;
+		
+	default:
+		break;
+	}
 }
 
 void ALobbyGameState::AddLobbyPlayer(const APlayerState* PlayerState)
