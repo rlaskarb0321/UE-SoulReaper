@@ -24,5 +24,5 @@ struct FShopItemRow : public FTableRowBase
 	TSoftObjectPtr<UTexture2D> Icon;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoulReaper|Shop")
-	int32 Price;
+	int32 Price = 0;
 };

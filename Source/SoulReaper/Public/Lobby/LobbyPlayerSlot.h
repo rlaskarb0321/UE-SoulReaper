@@ -6,11 +6,22 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyPlayerSlot.generated.h"
 
+class UImage;
 struct FLobbyPlayerEntry;
 class UTextBlock;
 /**
  * 
  */
+
+UENUM(BlueprintType)
+enum class ELobbySlotState : uint8
+{
+	Empty			UMETA(DisplayName = "Empty"),
+	Client			UMETA(DisplayName = "Client"),
+	Host			UMETA(DisplayName = "Host"),
+	MAX				UMETA(Hidden)
+};
+
 UCLASS()
 class SOULREAPER_API ULobbyPlayerSlot : public UUserWidget
 {
@@ -27,6 +38,12 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ReadyIndicator;
 	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> SlotBackground;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Lobby")
+	TMap<ELobbySlotState, FSlateBrush> StateBrushes;
+	
 	static const FText& GetReadyText()
 	{
 		static const FText Text = NSLOCTEXT("Lobby", "Ready", "-Ready-");
@@ -42,4 +59,7 @@ protected:
 		static const FText Text = NSLOCTEXT("Lobby", "Host", "-Host-");
 		return Text;
 	}
+	
+private:
+	void ApplySlotBackground(ELobbySlotState NewState);
 };
