@@ -17,4 +17,10 @@ class SOULREAPER_API UShopSettings : public UDeveloperSettings
 public:
 	UPROPERTY(Config, EditAnywhere, Category = "Bag", meta = (ClampMin = "1"))
 	int32 MaxBagKinds = 3;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Gold", meta = (ClampMin = "0"))
+	int32 StartingGold = 1000;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Item")
+	TSoftObjectPtr<UDataTable> ShopItemTable;
 };

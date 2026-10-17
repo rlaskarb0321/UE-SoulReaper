@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyShop.generated.h"
 
+class UTextBlock;
 /**
  * 
  */
@@ -14,4 +15,12 @@ class SOULREAPER_API ULobbyShop : public UUserWidget
 {
 	GENERATED_BODY()
 	
+protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> GoldAmount;
+	
+	virtual void InitializeInputComponent() override;
+	
+private:
+	void HandleGoldChanged(int32 NewGold);
 };

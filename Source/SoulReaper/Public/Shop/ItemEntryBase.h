@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "ItemEntryBase.generated.h"
 
+class UButton;
 /**
  * 
  */
