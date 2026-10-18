@@ -42,9 +42,9 @@ void ULobbyShop::HandleInventoryChanged(FName RowName, int32 NewCount)
 void ULobbyShop::CollectInventorySlots()
 {
 	InventorySlots.Empty();
-	InventorySlots.SetNum(BagUniformGrid->GetChildrenCount());
+	InventorySlots.SetNum(InventoryUniformGrid->GetChildrenCount());
 	
-	for (UWidget* Child : BagUniformGrid->GetAllChildren())
+	for (UWidget* Child : InventoryUniformGrid->GetAllChildren())
 	{
 		UItemEntryBase* Entry = Cast<UItemEntryBase>(Child);
 		UUniformGridSlot* GridSlot = Cast<UUniformGridSlot>(Child->Slot);

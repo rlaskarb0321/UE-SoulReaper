@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyShop.generated.h"
 
+class UButton;
 class UItemEntryBase;
 class UUniformGridPanel;
 class UTextBlock;
@@ -25,11 +26,21 @@ protected:
 	TObjectPtr<UUniformGridPanel> ShopUniformGrid;
 	
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UUniformGridPanel> BagUniformGrid;
+	TObjectPtr<UUniformGridPanel> InventoryUniformGrid;
 	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> LeftButton;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> RightButton;
+	
+protected:
 	virtual void NativeOnInitialized() override;
 	
 private:
+	UPROPERTY()
+	TArray<TObjectPtr<UItemEntryBase>> ShopItemSlots;
+	
 	UPROPERTY()
 	TArray<TObjectPtr<UItemEntryBase>> InventorySlots;
 	

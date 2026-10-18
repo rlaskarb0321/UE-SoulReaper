@@ -81,3 +81,7 @@ DerivedDataCache/*
 # 빌드된 플러그인 산출물
 Plugins/**/Binaries/*
 Plugins/**/Intermediate/*
+
+# Tools 아래 .NET 빌드 산출물
+Tools/**/bin/
+Tools/**/obj/

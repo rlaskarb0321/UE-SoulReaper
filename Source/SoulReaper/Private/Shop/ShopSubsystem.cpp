@@ -60,6 +60,7 @@ const FShopItemRow* UShopSubsystem::FindItemRow(FName RowName) const
 	if (Row == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[UShopSubsystem::FindItemRow] Row '%s' does not exist in ItemTable"), *RowName.ToString());
+		return nullptr;
 	}
 	
 	return Row;
