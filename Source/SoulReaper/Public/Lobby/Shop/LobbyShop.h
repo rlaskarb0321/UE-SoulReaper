@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyShop.generated.h"
 
+class UItemEntryBase;
+class UUniformGridPanel;
 class UTextBlock;
 /**
  * 
@@ -18,9 +20,20 @@ class SOULREAPER_API ULobbyShop : public UUserWidget
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> GoldAmount;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UUniformGridPanel> ShopUniformGrid;
 	
-	virtual void InitializeInputComponent() override;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UUniformGridPanel> BagUniformGrid;
+	
+	virtual void NativeOnInitialized() override;
 	
 private:
+	UPROPERTY()
+	TArray<TObjectPtr<UItemEntryBase>> InventorySlots;
+	
 	void HandleGoldChanged(int32 NewGold);
+	void HandleInventoryChanged(FName RowName, int32 NewCount);
+	void CollectInventorySlots();
 };

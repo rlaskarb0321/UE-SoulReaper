@@ -24,6 +24,7 @@ enum class EShopResult : uint8
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnGoldChanged, int32 NewGold);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInventoryChanged, FName RowName, int32 NewCount);
 
 UCLASS()
 class SOULREAPER_API UShopSubsystem : public UGameInstanceSubsystem
@@ -32,6 +33,7 @@ class SOULREAPER_API UShopSubsystem : public UGameInstanceSubsystem
 	
 public:
 	FOnGoldChanged OnGoldChanged;
+	FOnInventoryChanged OnInventoryChanged;
 	
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -39,6 +41,7 @@ public:
 	EShopResult RequestBuy(FName RowName);
 	EShopResult RequestRefund(FName RowName);
 	int32 GetGold() const { return Gold; }
+	const TMap<FName, int32>& GetInventory() const { return Inventory; }
 	
 private:
 	UPROPERTY()
@@ -49,4 +52,5 @@ private:
 	
 	const FShopItemRow* FindItemRow(FName RowName) const;
 	void AddGold(int32 InDelta);
+	void AddItem(FName InRowName, int32 InNewCount);
 };

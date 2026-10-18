@@ -70,3 +70,17 @@ void UShopSubsystem::AddGold(int32 InDelta)
 	Gold += InDelta;
 	OnGoldChanged.Broadcast(Gold);
 }
+
+void UShopSubsystem::AddItem(FName InRowName, int32 InNewCount)
+{
+	int32& Count = Inventory.FindOrAdd(InRowName);
+	Count += InNewCount;
+
+	const int32 NewCount = Count;      
+	if (NewCount <= 0)
+	{
+		Inventory.Remove(InRowName);
+	}
+
+	OnInventoryChanged.Broadcast(InRowName, FMath::Max(NewCount, 0));
+}
