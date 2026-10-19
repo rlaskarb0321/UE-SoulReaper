@@ -5,6 +5,7 @@
 
 #include "GameFramework/PlayerState.h"
 #include "Lobby/ELobbyRoute.h"
+#include "Lobby/LobbyMenuGameMode.h"
 #include "Net/UnrealNetwork.h"
 
 void ALobbyGameState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -108,9 +109,9 @@ void ALobbyGameState::RebuildIndexCache()
 
 void ALobbyGameState::HandleEnterGameRequest()
 {
-	const bool bIsAllReady = IsAllReady();
-	if (bIsAllReady == false)
+	if (IsAllReady() == false)
 		return;
 	
-	
+	if (ALobbyMenuGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ALobbyMenuGameMode>())
+		LobbyGameMode->StartGame();
 }

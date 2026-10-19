@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyMenu.generated.h"
 
+class ULobbyShop;
 class UWidgetSwitcher;
 class UButton;
 class ULobbyPlayerSlot;
@@ -49,6 +50,9 @@ protected:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> LeaveButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<ULobbyShop> LobbyShop;
 	
 	UPROPERTY()
 	TArray<TObjectPtr<ULobbyPlayerSlot>> PlayerSlots;

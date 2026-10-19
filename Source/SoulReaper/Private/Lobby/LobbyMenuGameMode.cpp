@@ -24,3 +24,7 @@ void ALobbyMenuGameMode::PostLogin(APlayerController* NewPlayer)
 		LobbyGS->AddLobbyPlayer(NewPlayer);
 	}
 }
+
+void ALobbyMenuGameMode::StartGame()
+{
+}

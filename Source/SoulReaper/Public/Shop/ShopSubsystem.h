@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "ShopTypes.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Http.h"
 #include "ShopSubsystem.generated.h"
 
 /**
@@ -30,8 +31,7 @@ public:
 	
 	EShopResult RequestBuy(FName RowName);
 	EShopResult RequestRefund(FName RowName);
-	int32 GetGold() const { return Gold; }
-	const TMap<FName, int32>& GetInventory() const { return Inventory; }
+	void LoadWallet();
 	const FShopItemRow* FindItemRow(FName RowName) const;
 	TArray<FName> GetAllItemRowNames() const;
 	
@@ -44,4 +44,5 @@ private:
 	
 	void AddGold(int32 InDelta);
 	void AddItem(FName InRowName, int32 InDelta);
+	void HandleWalletResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };

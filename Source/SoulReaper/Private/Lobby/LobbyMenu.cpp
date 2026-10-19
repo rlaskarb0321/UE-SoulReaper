@@ -6,11 +6,13 @@
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
 #include "Components/WidgetSwitcher.h"
+#include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lobby/ELobbyRoute.h"
 #include "Lobby/LobbyMenuPlayerController.h"
 #include "Lobby/LobbyPlayerSlot.h"
 #include "Lobby/LobbyTypes.h"
+#include "Lobby/Shop/LobbyShop.h"
 #include "Network/Request/RequestHandler.h"
 
 void ULobbyMenu::NativeOnInitialized()
@@ -47,7 +49,9 @@ void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
 	
 	const APlayerController* OwningController = GetOwningPlayer();
 	const bool bIsHost = OwningController != nullptr && OwningController->HasAuthority();
+	bool bLockShop = false;
 	
+	// Init PlayerSlot
 	PlayButtonSwitcher->SetActiveWidgetIndex(static_cast<int32>(
 		bIsHost ? EPlayButtonSwitcher::Host : EPlayButtonSwitcher::Client));
 	
@@ -61,6 +65,22 @@ void ULobbyMenu::RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries)
 
 		PlayerSlots[i]->SetEntry(Entries[i]);
 	}
+	
+	// Init Shop Lock State
+	if (OwningController != nullptr && OwningController->PlayerState != nullptr)
+	{
+		int32 MyId = OwningController->PlayerState->GetPlayerId();
+		for (const FLobbyPlayerEntry& Entry : Entries)
+		{
+			if (Entry.PlayerId != MyId)
+				continue;
+			
+			bLockShop = (bIsHost == false && Entry.bIsReady);
+			break;
+		}
+	}		
+	
+	LobbyShop->SetIsEnabled(bLockShop == false);
 }
 
 void ULobbyMenu::HandleReadyClicked()

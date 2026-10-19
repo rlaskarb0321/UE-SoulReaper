@@ -25,7 +25,6 @@ void ULobbyShop::NativeOnInitialized()
 
 	ShopItemRowNames = ShopSubsystem->GetAllItemRowNames();
 	RefreshShopItemSlots();
-	HandleGoldChanged(ShopSubsystem->GetGold());
 
 	for (UItemEntryBase* InventoryItem : InventorySlots)
 	{
@@ -35,13 +34,9 @@ void ULobbyShop::NativeOnInitialized()
 		InventoryItem->ClearEntry();
 	}
 
-	for (const TPair<FName, int32>& Pair : ShopSubsystem->GetInventory())
-	{
-		HandleInventoryChanged(Pair.Key, Pair.Value);
-	}
-
 	ShopSubsystem->OnRefreshGold.AddUObject(this, &ULobbyShop::HandleGoldChanged);
 	ShopSubsystem->OnRefreshInventory.AddUObject(this, &ULobbyShop::HandleInventoryChanged);
+	ShopSubsystem->LoadWallet();
 }
 
 void ULobbyShop::SetupItemEntrySlots()

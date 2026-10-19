@@ -18,4 +18,5 @@ public:
 	ALobbyMenuGameMode();
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	void StartGame();
 };

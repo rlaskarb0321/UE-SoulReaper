@@ -23,4 +23,10 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Item")
 	TSoftObjectPtr<UDataTable> ShopItemTable;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Server")
+	FString ServerBaseUrl = TEXT("http://localhost:5080");
+
+	UPROPERTY(Config, EditAnywhere, Category = "Server", meta = (ClampMin = "0.1"))
+	float RequestTimeoutSeconds = 5.f;
 };
