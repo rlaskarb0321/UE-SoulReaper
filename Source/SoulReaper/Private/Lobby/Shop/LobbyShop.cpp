@@ -8,6 +8,7 @@
 #include "Components/UniformGridSlot.h"
 #include "Shop/InventoryItem.h"
 #include "Shop/ItemEntryBase.h"
+#include "Shop/ShopSettings.h"
 #include "Shop/ShopSubsystem.h"
 #include "Shop/ShopTypes.h"
 
@@ -63,6 +64,12 @@ void ULobbyShop::SetupItemEntrySlots()
 		InventorySlots[Column] = Entry;
 		Entry->OnItemEntryClicked.AddUObject(this, &ULobbyShop::HandleInventoryEntryClicked);
 	}
+	
+	MaxInvenSize = GetDefault<UShopSettings>()->MaxBagKinds;
+	CurrentInventory->SetText(FText::Format(
+		FText::FromString(TEXT("{0} / {1}")),
+		FText::AsNumber(CurrentInvenSize),
+		FText::AsNumber(MaxInvenSize)));
 
 	// Setup Shop Item Slots
 	ShopItemSlots.Empty();
@@ -110,6 +117,11 @@ void ULobbyShop::HandleInventoryChanged(FName RowName, int32 NewCount)
 		if (NewCount <= 0)
 		{
 			FoundItem->ClearEntry();
+			CurrentInvenSize = FMath::Clamp(--CurrentInvenSize, 0, MaxInvenSize);
+			CurrentInventory->SetText(FText::Format(
+			FText::FromString(TEXT("{0} / {1}")),
+			FText::AsNumber(CurrentInvenSize),
+			FText::AsNumber(MaxInvenSize)));
 			return;
 		}
 
@@ -143,6 +155,11 @@ void ULobbyShop::HandleInventoryChanged(FName RowName, int32 NewCount)
 		
 		InventoryItem->Init(RowName, *ShopSubsystem->FindItemRow(RowName));
 		InventoryItem->SetAmount(NewCount);
+		CurrentInvenSize = FMath::Clamp(++CurrentInvenSize, 0, MaxInvenSize);
+		CurrentInventory->SetText(FText::Format(
+		FText::FromString(TEXT("{0} / {1}")),
+		FText::AsNumber(CurrentInvenSize),
+		FText::AsNumber(MaxInvenSize)));
 		break;
 	}
 }
@@ -158,9 +175,6 @@ void ULobbyShop::HandleInventoryEntryClicked(FName RowName)
 
 	switch (Result)
 	{
-	case EShopResult::NotEnoughGold:
-		break;
-
 	case EShopResult::InvalidItem:
 		break;
 
@@ -184,12 +198,14 @@ void ULobbyShop::HandleShopItemEntryClicked(FName RowName)
 	switch (Result)
 	{
 	case EShopResult::NotEnoughGold:
-		break;
-
-	case EShopResult::InvalidItem:
+		PlayAnimation(NotEnoughGold);
 		break;
 
 	case EShopResult::BagFull:
+		PlayAnimation(BagFull);
+		break;
+
+	case EShopResult::InvalidItem:
 		break;
 
 	default:

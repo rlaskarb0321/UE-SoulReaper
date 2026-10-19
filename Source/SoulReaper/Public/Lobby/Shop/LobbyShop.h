@@ -21,8 +21,17 @@ class SOULREAPER_API ULobbyShop : public UUserWidget
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> NotEnoughGold;
+	
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> BagFull;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> GoldAmount;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> CurrentInventory;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UUniformGridPanel> ShopUniformGrid;
@@ -52,6 +61,8 @@ private:
 	TArray<TObjectPtr<UItemEntryBase>> InventorySlots;
 
 	TArray<FName> ShopItemRowNames;
+	int32 CurrentInvenSize = 0;
+	int32 MaxInvenSize = 0;
 
 	void HandleGoldChanged(int32 NewGold);
 	void HandleInventoryChanged(FName RowName, int32 NewCount);
