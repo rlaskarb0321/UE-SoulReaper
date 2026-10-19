@@ -4,6 +4,11 @@
 #include "Shop/ShopSubsystem.h"
 
 #include "Dom/JsonObject.h"
+#include "Engine/Engine.h"
+#include "Engine/GameInstance.h"
+#include "GenericPlatform/GenericPlatformHttp.h"
+#include "Misc/ConfigCacheIni.h"
+#include "Misc/Guid.h"
 #include "Serialization/JsonSerializer.h"
 #include "Shop/ShopSettings.h"
 #include "Shop/ShopTypes.h"
@@ -100,12 +105,41 @@ void UShopSubsystem::AddItem(FName InRowName, int32 InDelta)
 	OnRefreshInventory.Broadcast(InRowName, FMath::Max(NewCount, 0));
 }
 
+FString UShopSubsystem::GetAccountId()
+{
+	if (CachedAccountId.IsEmpty() == false)
+		return CachedAccountId;
+
+	// 1) 저장된 ID 를 읽는다
+	FString Id;
+	GConfig->GetString(TEXT("SoulReaper"), TEXT("ShopAccountId"), Id, GGameUserSettingsIni);
+
+	// 2) 없으면 처음 한 번만 만들어 저장한다
+	if (Id.IsEmpty())
+	{
+		Id = FGuid::NewGuid().ToString(EGuidFormats::Digits);
+		GConfig->SetString(TEXT("SoulReaper"), TEXT("ShopAccountId"), *Id, GGameUserSettingsIni);
+		GConfig->Flush(false, GGameUserSettingsIni);
+	}
+
+	// 3) 에디터 PIE 에서 클라이언트를 여러 개 띄웠을 때 지갑이 겹치지 않게 구분한다
+	const FWorldContext* Context = GetGameInstance()->GetWorldContext();
+	if (Context != nullptr && Context->PIEInstance != INDEX_NONE)
+	{
+		Id += FString::Printf(TEXT("_pie%d"), Context->PIEInstance);
+	}
+
+	CachedAccountId = Id;
+	return CachedAccountId;
+}
+
 void UShopSubsystem::LoadWallet()
 {
 	const UShopSettings* Settings = GetDefault<UShopSettings>();
 
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
-	Request->SetURL(FString::Printf(TEXT("%s/wallet?playerId=player1"), *Settings->ServerBaseUrl));    
+	Request->SetURL(FString::Printf(TEXT("%s/wallet?accountId=%s"),
+		*Settings->ServerBaseUrl, *FGenericPlatformHttp::UrlEncode(GetAccountId())));
 	Request->SetVerb(TEXT("GET"));
 	Request->SetTimeout(Settings->RequestTimeoutSeconds);
 	Request->OnProcessRequestComplete().BindUObject(this, &UShopSubsystem::HandleWalletResponse);

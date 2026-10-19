@@ -41,7 +41,9 @@ private:
 	
 	int32 Gold = 0;
 	TMap<FName, int32> Inventory;
-	
+	FString CachedAccountId;
+
+	FString GetAccountId();
 	void AddGold(int32 InDelta);
 	void AddItem(FName InRowName, int32 InDelta);
 	void HandleWalletResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);

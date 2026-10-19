@@ -15,9 +15,9 @@ dotnet run -- --StartingGold=500 --MaxBagKinds=2
 | 메서드 | 경로 | 본문 | 설명 |
 |---|---|---|---|
 | GET | `/health` | - | 생존 확인 |
-| GET | `/wallet?playerId=` | - | 지갑 스냅샷 (계정이 없으면 생성) |
-| POST | `/buy` | `{playerId, rowName, price}` | 구매 확정 |
-| POST | `/refund` | `{playerId, rowName, price}` | 환불 확정 |
+| GET | `/wallet?accountId=` | - | 지갑 스냅샷 (계정이 없으면 생성) |
+| POST | `/buy` | `{accountId, rowName, price}` | 구매 확정 |
+| POST | `/refund` | `{accountId, rowName, price}` | 환불 확정 |
 | POST | `/admin/reset` | - | 모든 계정 초기화 |
 
 가격(`price`)은 클라이언트 값을 그대로 믿는다. 카탈로그는 클라이언트 DT에 있다.

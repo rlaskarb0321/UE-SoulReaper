@@ -22,12 +22,12 @@ int maxBagKinds = app.Configuration.GetValue("MaxBagKinds", 3);        // 클라
 var accounts = new Dictionary<string, Account>();
 var gate = new object();
 
-Account GetOrCreate(string playerId)
+Account GetOrCreate(string accountId)
 {
-    if (!accounts.TryGetValue(playerId, out var account))
+    if (!accounts.TryGetValue(accountId, out var account))
     {
         account = new Account { Gold = startingGold };
-        accounts[playerId] = account;
+        accounts[accountId] = account;
     }
     return account;
 }
@@ -82,27 +82,27 @@ Func<HttpContext, Task<IResult>> health = ctx =>
     Run(ctx, "GET /health", () => Results.Json(new { ok = true }));
 app.MapGet("/health", health);
 
-app.MapGet("/wallet", (HttpContext ctx, string? playerId) =>
-    Run(ctx, $"GET /wallet player={playerId}", () =>
+app.MapGet("/wallet", (HttpContext ctx, string? accountId) =>
+    Run(ctx, $"GET /wallet account={accountId}", () =>
     {
-        if (string.IsNullOrWhiteSpace(playerId))
+        if (string.IsNullOrWhiteSpace(accountId))
             return Results.Json(new { ok = false, error = "INVALID_REQUEST" }, statusCode: 400);
 
         lock (gate)
         {
-            return Results.Json(MakeSnapshot(true, null, GetOrCreate(playerId)));
+            return Results.Json(MakeSnapshot(true, null, GetOrCreate(accountId)));
         }
     }));
 
 app.MapPost("/buy", (HttpContext ctx, TradeRequest req) =>
-    Run(ctx, $"POST /buy player={req.PlayerId} row={req.RowName} price={req.Price}", () =>
+    Run(ctx, $"POST /buy account={req.AccountId} row={req.RowName} price={req.Price}", () =>
     {
-        if (string.IsNullOrWhiteSpace(req.PlayerId) || string.IsNullOrWhiteSpace(req.RowName) || req.Price < 0)
+        if (string.IsNullOrWhiteSpace(req.AccountId) || string.IsNullOrWhiteSpace(req.RowName) || req.Price < 0)
             return Results.Json(new { ok = false, error = "INVALID_REQUEST" }, statusCode: 400);
 
         lock (gate)
         {
-            var account = GetOrCreate(req.PlayerId);
+            var account = GetOrCreate(req.AccountId);
 
             if (!account.Inventory.ContainsKey(req.RowName) && account.Inventory.Count >= maxBagKinds)
                 return Results.Json(MakeSnapshot(false, "BAG_FULL", account), statusCode: 409);
@@ -117,14 +117,14 @@ app.MapPost("/buy", (HttpContext ctx, TradeRequest req) =>
     }));
 
 app.MapPost("/refund", (HttpContext ctx, TradeRequest req) =>
-    Run(ctx, $"POST /refund player={req.PlayerId} row={req.RowName} price={req.Price}", () =>
+    Run(ctx, $"POST /refund account={req.AccountId} row={req.RowName} price={req.Price}", () =>
     {
-        if (string.IsNullOrWhiteSpace(req.PlayerId) || string.IsNullOrWhiteSpace(req.RowName) || req.Price < 0)
+        if (string.IsNullOrWhiteSpace(req.AccountId) || string.IsNullOrWhiteSpace(req.RowName) || req.Price < 0)
             return Results.Json(new { ok = false, error = "INVALID_REQUEST" }, statusCode: 400);
 
         lock (gate)
         {
-            var account = GetOrCreate(req.PlayerId);
+            var account = GetOrCreate(req.AccountId);
 
             if (!account.Inventory.TryGetValue(req.RowName, out int count) || count <= 0)
                 return Results.Json(MakeSnapshot(false, "NOT_OWNED", account), statusCode: 409);
@@ -153,7 +153,7 @@ app.MapPost("/admin/reset", reset);
 Console.WriteLine($"MockShopServer  startingGold={startingGold}  maxBagKinds={maxBagKinds}");
 app.Run();
 
-record TradeRequest(string? PlayerId, string? RowName, int Price);
+record TradeRequest(string? AccountId, string? RowName, int Price);
 record Snapshot(bool Ok, string? Error, int Gold, Dictionary<string, int> Inventory);
 
 class Account
