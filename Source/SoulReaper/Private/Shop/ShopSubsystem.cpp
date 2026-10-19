@@ -35,6 +35,8 @@ EShopResult UShopSubsystem::RequestBuy(FName RowName)
 	if (RowItem->Price > Gold)
 		return EShopResult::NotEnoughGold;
 	
+	AddItem(RowName, 1);
+	AddGold(-1 * RowItem->Price);
 	return EShopResult::Success;
 }
 
@@ -48,6 +50,8 @@ EShopResult UShopSubsystem::RequestRefund(FName RowName)
 	if (Inventory.Contains(RowName) == false)
 		return EShopResult::NotOwned;
 	
+	AddItem(RowName, -1);
+	AddGold(RowItem->Price);
 	return EShopResult::Success;
 }
 
@@ -66,16 +70,24 @@ const FShopItemRow* UShopSubsystem::FindItemRow(FName RowName) const
 	return Row;
 }
 
+TArray<FName> UShopSubsystem::GetAllItemRowNames() const
+{
+	if (ItemTable == nullptr)
+		return TArray<FName>();
+	
+	return ItemTable->GetRowNames();
+}
+
 void UShopSubsystem::AddGold(int32 InDelta)
 {
 	Gold += InDelta;
 	OnGoldChanged.Broadcast(Gold);
 }
 
-void UShopSubsystem::AddItem(FName InRowName, int32 InNewCount)
+void UShopSubsystem::AddItem(FName InRowName, int32 InDelta)
 {
 	int32& Count = Inventory.FindOrAdd(InRowName);
-	Count += InNewCount;
+	Count += InDelta;
 
 	const int32 NewCount = Count;      
 	if (NewCount <= 0)

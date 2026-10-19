@@ -26,3 +26,14 @@ struct FShopItemRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoulReaper|Shop")
 	int32 Price = 0;
 };
+
+UENUM(BlueprintType)
+enum class EShopResult : uint8
+{
+	Success				UMETA(DisplayName = "Success"),
+	NotEnoughGold		UMETA(DisplayName = "Not enough gold"),
+	BagFull				UMETA(DisplayName = "Bag Full"),
+	InvalidItem			UMETA(DisplayName = "Invalid item"),
+	NotOwned			UMETA(DisplayName = "Not owned"),
+	MAX					UMETA(Hidden)
+};

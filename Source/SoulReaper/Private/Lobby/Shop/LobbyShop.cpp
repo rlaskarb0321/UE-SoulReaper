@@ -6,44 +6,49 @@
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Shop/InventoryItem.h"
 #include "Shop/ItemEntryBase.h"
 #include "Shop/ShopSubsystem.h"
+#include "Shop/ShopTypes.h"
 
 void ULobbyShop::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
-	
-	CollectInventorySlots();
-	
-	UShopSubsystem* ShopSubsystem = GetGameInstance()->GetSubsystem<UShopSubsystem>();
+
+	ShopSubsystem = GetGameInstance()->GetSubsystem<UShopSubsystem>();
+
+	SetupItemEntrySlots();
+
 	if (ShopSubsystem == nullptr)
 		return;
-	
-	HandleGoldChanged(ShopSubsystem->GetGold());	
+
+	ShopItemRowNames = ShopSubsystem->GetAllItemRowNames();
+	RefreshShopItemSlots();
+	HandleGoldChanged(ShopSubsystem->GetGold());
+
+	for (UItemEntryBase* InventoryItem : InventorySlots)
+	{
+		if (InventoryItem == nullptr)
+			continue;
+
+		InventoryItem->ClearEntry();
+	}
+
 	for (const TPair<FName, int32>& Pair : ShopSubsystem->GetInventory())
 	{
 		HandleInventoryChanged(Pair.Key, Pair.Value);
 	}
-	
+
 	ShopSubsystem->OnGoldChanged.AddUObject(this, &ULobbyShop::HandleGoldChanged);
 	ShopSubsystem->OnInventoryChanged.AddUObject(this, &ULobbyShop::HandleInventoryChanged);
 }
 
-void ULobbyShop::HandleGoldChanged(int32 NewGold)
+void ULobbyShop::SetupItemEntrySlots()
 {
-	GoldAmount->SetText(FText::AsNumber(NewGold));
-}
-
-void ULobbyShop::HandleInventoryChanged(FName RowName, int32 NewCount)
-{
-	
-}
-
-void ULobbyShop::CollectInventorySlots()
-{
+	// Setup Inventory Slots
 	InventorySlots.Empty();
 	InventorySlots.SetNum(InventoryUniformGrid->GetChildrenCount());
-	
+
 	for (UWidget* Child : InventoryUniformGrid->GetAllChildren())
 	{
 		UItemEntryBase* Entry = Cast<UItemEntryBase>(Child);
@@ -56,5 +61,171 @@ void ULobbyShop::CollectInventorySlots()
 			continue;
 
 		InventorySlots[Column] = Entry;
+		Entry->OnItemEntryClicked.AddUObject(this, &ULobbyShop::HandleInventoryEntryClicked);
+	}
+
+	// Setup Shop Item Slots
+	ShopItemSlots.Empty();
+	ShopItemSlots.SetNum(ShopUniformGrid->GetChildrenCount());
+
+	for (UWidget* Child : ShopUniformGrid->GetAllChildren())
+	{
+		UItemEntryBase* Entry = Cast<UItemEntryBase>(Child);
+		UUniformGridSlot* GridSlot = Cast<UUniformGridSlot>(Child->Slot);
+		if (Entry == nullptr || GridSlot == nullptr)
+			continue;
+
+		const int32 Column = GridSlot->GetColumn();
+		if (ShopItemSlots.IsValidIndex(Column) == false)
+			continue;
+
+		ShopItemSlots[Column] = Entry;
+		Entry->OnItemEntryClicked.AddUObject(this, &ULobbyShop::HandleShopItemEntryClicked);
+	}
+}
+
+void ULobbyShop::HandleGoldChanged(int32 NewGold)
+{
+	GoldAmount->SetText(FText::AsNumber(NewGold));
+}
+
+void ULobbyShop::HandleInventoryChanged(FName RowName, int32 NewCount)
+{
+	UItemEntryBase* FoundItem = nullptr;
+
+	for (UItemEntryBase* Entry : InventorySlots)
+	{
+		if (Entry == nullptr)
+			continue;
+
+		if (Entry->GetItemName() == RowName)
+		{
+			FoundItem = Entry;
+			break;
+		}
+	}
+
+	if (FoundItem != nullptr)
+	{
+		if (NewCount <= 0)
+		{
+			FoundItem->ClearEntry();
+			return;
+		}
+
+		UInventoryItem* InventoryItem = Cast<UInventoryItem>(FoundItem);
+		if (InventoryItem == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[ULobbyShop::HandleInventoryChanged] '%s' slot is not UInventoryItem. Check the WBP parent class."), *RowName.ToString());
+			return;
+		}
+
+		InventoryItem->SetAmount(NewCount);
+		return;
+	}
+
+	if (NewCount <= 0)
+		return;
+	
+	for (UItemEntryBase* Entry : InventorySlots)
+	{
+		if (Entry == nullptr)
+			continue;
+		if (Entry->GetItemName() != NAME_None)
+			continue;
+		
+		UInventoryItem* InventoryItem = Cast<UInventoryItem>(Entry);
+		if (InventoryItem == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[ULobbyShop::HandleInventoryChanged] '%s' slot is not UInventoryItem. Check the WBP parent class."), *RowName.ToString());
+			return;
+		}
+		
+		InventoryItem->Init(RowName, *ShopSubsystem->FindItemRow(RowName));
+		InventoryItem->SetAmount(NewCount);
+		break;
+	}
+}
+
+void ULobbyShop::HandleInventoryEntryClicked(FName RowName)
+{
+	if (ShopSubsystem == nullptr)
+		return;
+
+	EShopResult Result = ShopSubsystem->RequestRefund(RowName);
+	if (Result == EShopResult::Success)
+		return;
+
+	switch (Result)
+	{
+	case EShopResult::NotEnoughGold:
+		break;
+
+	case EShopResult::InvalidItem:
+		break;
+
+	case EShopResult::NotOwned:
+		break;
+
+	default:
+		break;
+	}
+}
+
+void ULobbyShop::HandleShopItemEntryClicked(FName RowName)
+{
+	if (ShopSubsystem == nullptr)
+		return;
+
+	EShopResult Result = ShopSubsystem->RequestBuy(RowName);
+	if (Result == EShopResult::Success)
+		return;
+
+	switch (Result)
+	{
+	case EShopResult::NotEnoughGold:
+		break;
+
+	case EShopResult::InvalidItem:
+		break;
+
+	case EShopResult::BagFull:
+		break;
+
+	default:
+		break;
+	}
+}
+
+
+void ULobbyShop::RefreshShopItemSlots()
+{
+	if (ShopSubsystem == nullptr)
+		return;
+
+	const int32 PerPage = ShopItemSlots.Num();
+	if (PerPage <= 0)
+		return;
+
+	const int32 LastPage = FMath::Max(0, FMath::DivideAndRoundUp(ShopItemRowNames.Num(), PerPage) - 1);
+	CurrentPage = FMath::Clamp(CurrentPage, 0, LastPage);
+
+	for (int32 i = 0; i < PerPage; i++)
+	{
+		UItemEntryBase* FillTarget = ShopItemSlots[i];
+		if (FillTarget == nullptr)
+			continue;
+
+		const int32 FindIndex = (PerPage * CurrentPage) + i;
+		if (ShopItemRowNames.IsValidIndex(FindIndex))
+		{
+			const FShopItemRow* FindRow = ShopSubsystem->FindItemRow(ShopItemRowNames[FindIndex]);
+
+			FillTarget->Init(ShopItemRowNames[FindIndex], *FindRow);
+		}
+		else
+		{
+			FillTarget->ClearEntry();
+		}
 	}
 }
