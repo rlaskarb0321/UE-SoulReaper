@@ -39,8 +39,8 @@ void ULobbyShop::NativeOnInitialized()
 		HandleInventoryChanged(Pair.Key, Pair.Value);
 	}
 
-	ShopSubsystem->OnGoldChanged.AddUObject(this, &ULobbyShop::HandleGoldChanged);
-	ShopSubsystem->OnInventoryChanged.AddUObject(this, &ULobbyShop::HandleInventoryChanged);
+	ShopSubsystem->OnRefreshGold.AddUObject(this, &ULobbyShop::HandleGoldChanged);
+	ShopSubsystem->OnRefreshInventory.AddUObject(this, &ULobbyShop::HandleInventoryChanged);
 }
 
 void ULobbyShop::SetupItemEntrySlots()

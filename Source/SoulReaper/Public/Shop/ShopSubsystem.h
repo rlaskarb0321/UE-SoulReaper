@@ -13,8 +13,8 @@
 
 struct FShopItemRow;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnGoldChanged, int32 NewGold);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInventoryChanged, FName RowName, int32 NewCount);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnRefreshGold, int32 NewGold);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnRefreshInventory, FName RowName, int32 NewCount);
 
 UCLASS()
 class SOULREAPER_API UShopSubsystem : public UGameInstanceSubsystem
@@ -22,8 +22,8 @@ class SOULREAPER_API UShopSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 	
 public:
-	FOnGoldChanged OnGoldChanged;
-	FOnInventoryChanged OnInventoryChanged;
+	FOnRefreshGold OnRefreshGold;
+	FOnRefreshInventory OnRefreshInventory;
 	
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

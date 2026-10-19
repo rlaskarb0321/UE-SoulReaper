@@ -81,7 +81,7 @@ TArray<FName> UShopSubsystem::GetAllItemRowNames() const
 void UShopSubsystem::AddGold(int32 InDelta)
 {
 	Gold += InDelta;
-	OnGoldChanged.Broadcast(Gold);
+	OnRefreshGold.Broadcast(Gold);
 }
 
 void UShopSubsystem::AddItem(FName InRowName, int32 InDelta)
@@ -95,5 +95,5 @@ void UShopSubsystem::AddItem(FName InRowName, int32 InDelta)
 		Inventory.Remove(InRowName);
 	}
 
-	OnInventoryChanged.Broadcast(InRowName, FMath::Max(NewCount, 0));
+	OnRefreshInventory.Broadcast(InRowName, FMath::Max(NewCount, 0));
 }
