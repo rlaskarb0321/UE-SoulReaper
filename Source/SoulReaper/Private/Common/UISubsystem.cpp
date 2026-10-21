@@ -25,7 +25,7 @@ void UUISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 }
 
-void UUISubsystem::ShowPopup(FName InRowName)
+void UUISubsystem::ShowPopup(FName InRowName, FOnPopupButtonClicked InOnLeft, FOnPopupButtonClicked InOnRight)
 {
 	// 1) 행을 찾는다
 	const FPopupTypeRow* Row = FindPopupType(InRowName);
@@ -56,8 +56,8 @@ void UUISubsystem::ShowPopup(FName InRowName)
 		return;
 	}
 
-	// 4) 내용을 채우고 화면에 올린다
-	PopupWidget->SetData(*Row);
+	// 4) 내용과 버튼 동작을 넘기고 화면에 올린다
+	PopupWidget->SetData(*Row, InOnLeft, InOnRight);
 	PopupWidget->AddToViewport();
 }
 

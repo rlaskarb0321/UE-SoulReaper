@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Common/PopupTypes.h"
 #include "PopupWidget.generated.h"
 
-struct FPopupTypeRow;
+class UButton;
 class USizeBox;
 class UTextBlock;
 /**
@@ -18,9 +19,17 @@ class SOULREAPER_API UPopupWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetData(const FPopupTypeRow& InRow);
+	void SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InOnLeft, FOnPopupButtonClicked InOnRight);
 
 protected:
+	virtual void NativeOnInitialized() override;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> LeftButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> RightButton;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> TitleText;
 	
@@ -36,4 +45,15 @@ protected:
 	// 확인만 있는 팝업일 때 오른쪽 버튼 전체(크기 박스 포함)를 숨기기 위한 컨테이너
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<USizeBox> RightSizeBox;
+
+private:
+	// 좌/우 버튼을 눌렀을 때 실행할 함수 (호출한 쪽이 정해서 넘겨 줌)
+	FOnPopupButtonClicked OnLeft;
+	FOnPopupButtonClicked OnRight;
+
+	UFUNCTION()
+	void HandleLeftClicked();
+
+	UFUNCTION()
+	void HandleRightClicked();
 };

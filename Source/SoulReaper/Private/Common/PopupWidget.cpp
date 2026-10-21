@@ -4,17 +4,47 @@
 #include "Common/PopupWidget.h"
 
 #include "Common/PopupTypes.h"
+#include "Components/Button.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 
-void UPopupWidget::SetData(const FPopupTypeRow& InRow)
+void UPopupWidget::NativeOnInitialized()
 {
+	Super::NativeOnInitialized();
+
+	LeftButton->OnClicked.AddUniqueDynamic(this, &UPopupWidget::HandleLeftClicked);
+	RightButton->OnClicked.AddUniqueDynamic(this, &UPopupWidget::HandleRightClicked);
+}
+
+void UPopupWidget::SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InOnLeft, FOnPopupButtonClicked InOnRight)
+{
+	OnLeft = InOnLeft;
+	OnRight = InOnRight;
+
 	TitleText->SetText(InRow.Title);
 	ContentText->SetText(InRow.Content);
 	LeftButtonText->SetText(InRow.LeftText);
 	RightButtonText->SetText(InRow.RightText);
-
-	// 확인만 있는 팝업이면 오른쪽 버튼을 자리째 없앤다. 보일 때는 SizeBox 의 기본 가시성으로 되돌린다.
 	RightSizeBox->SetVisibility(InRow.bIsConfirmOnly ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);
+}
+
+void UPopupWidget::HandleLeftClicked()
+{
+	const FOnPopupButtonClicked Callback = OnLeft;
+	OnLeft.Unbind();
+	OnRight.Unbind();
+
+	RemoveFromParent();
+	Callback.ExecuteIfBound();
+}
+
+void UPopupWidget::HandleRightClicked()
+{
+	const FOnPopupButtonClicked Callback = OnRight;
+	OnLeft.Unbind();
+	OnRight.Unbind();
+
+	RemoveFromParent();
+	Callback.ExecuteIfBound();
 }
 

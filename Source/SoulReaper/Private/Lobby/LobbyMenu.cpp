@@ -120,13 +120,7 @@ void ULobbyMenu::HandleHostButtonClicked()
 
 void ULobbyMenu::HandleLeaveButtonClicked()
 {
-	if (MainMenuLevel.IsNull())
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ULobbyMenu::HandleLeaveButtonClicked] MainMenu is Null"));
-		return;
-	}
 
-	// UGameplayStatics::OpenLevelBySoftObjectPtr(this, MainMenuLevel);
 	UUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
 	if (UISubsystem == nullptr)
 	{
@@ -134,5 +128,17 @@ void ULobbyMenu::HandleLeaveButtonClicked()
 		return;
 	}
 	
-	UISubsystem->ShowPopup(LeavePopupRow.RowName);
+	FOnPopupButtonClicked OnLeft;
+	OnLeft.BindWeakLambda(this, [this]()
+	{
+		if (MainMenuLevel.IsNull())
+		{
+			UE_LOG(LogTemp, Error, TEXT("[ULobbyMenu::HandleLeaveButtonClicked] MainMenu is Null"));
+			return;
+		}
+		UGameplayStatics::OpenLevelBySoftObjectPtr(this, MainMenuLevel);
+	});
+
+	// 오른쪽(취소): 따로 할 일이 없으므로 넘기지 않는다. 팝업이 스스로 닫힌다.
+	UISubsystem->ShowPopup(LeavePopupRow.RowName, OnLeft);
 }
