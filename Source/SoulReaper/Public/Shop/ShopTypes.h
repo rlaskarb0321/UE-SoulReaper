@@ -35,6 +35,7 @@ enum class EShopResult : uint8
 	BagFull				UMETA(DisplayName = "Bag Full"),
 	InvalidItem			UMETA(DisplayName = "Invalid item"),
 	NotOwned			UMETA(DisplayName = "Not owned"),
+	
 	NetworkError		UMETA(DisplayName = "Network error"),
 	Timeout				UMETA(DisplayName = "Timeout"),
 	ServerError			UMETA(DisplayName = "Server error"),
