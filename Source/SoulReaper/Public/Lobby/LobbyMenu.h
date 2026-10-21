@@ -35,6 +35,9 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Lobby")
 	TSoftObjectPtr<UWorld> MainMenuLevel;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Lobby", meta = (RowType = "/Script/SoulReaper.PopupTypeRow"))
+	FDataTableRowHandle LeavePopupRow;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> PlayerListBox;

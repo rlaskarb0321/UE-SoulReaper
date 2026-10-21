@@ -28,4 +28,10 @@ struct FPopupTypeRow : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoulReaper|Widget")
 	FText RightText;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoulReaper|Widget")
+	FName LeftNextPopupRow = NAME_None;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoulReaper|Widget")
+	FName RightNextPopupRow = NAME_None;
 };

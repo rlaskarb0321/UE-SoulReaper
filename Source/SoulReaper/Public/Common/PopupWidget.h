@@ -1,0 +1,39 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "PopupWidget.generated.h"
+
+struct FPopupTypeRow;
+class USizeBox;
+class UTextBlock;
+/**
+ *
+ */
+UCLASS()
+class SOULREAPER_API UPopupWidget : public UUserWidget
+{
+	GENERATED_BODY()
+
+public:
+	void SetData(const FPopupTypeRow& InRow);
+
+protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> TitleText;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ContentText;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> LeftButtonText;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> RightButtonText;
+
+	// 확인만 있는 팝업일 때 오른쪽 버튼 전체(크기 박스 포함)를 숨기기 위한 컨테이너
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<USizeBox> RightSizeBox;
+};

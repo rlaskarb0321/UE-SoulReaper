@@ -3,6 +3,7 @@
 
 #include "Lobby/LobbyMenu.h"
 
+#include "Common/UISubsystem.h"
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
 #include "Components/WidgetSwitcher.h"
@@ -125,5 +126,13 @@ void ULobbyMenu::HandleLeaveButtonClicked()
 		return;
 	}
 
-	UGameplayStatics::OpenLevelBySoftObjectPtr(this, MainMenuLevel);
+	// UGameplayStatics::OpenLevelBySoftObjectPtr(this, MainMenuLevel);
+	UUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
+	if (UISubsystem == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ULobbyMenu::HandleLeaveButtonClicked] UISubsystem is nullptr"));
+		return;
+	}
+	
+	UISubsystem->ShowPopup(LeavePopupRow.RowName);
 }
