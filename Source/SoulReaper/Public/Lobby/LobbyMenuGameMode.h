@@ -19,4 +19,9 @@ public:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	void StartGame();
+
+protected:
+	// 모든 플레이어의 결제가 끝나면 이동할 레벨
+	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Lobby")
+	TSoftObjectPtr<UWorld> GameLevel;
 };

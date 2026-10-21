@@ -139,6 +139,26 @@ app.MapPost("/refund", (HttpContext ctx, TradeRequest req) =>
         }
     }));
 
+// 클라이언트가 보낸 지갑({gold, inventory})을 그대로 저장한다.
+// 치트 검증은 이 서버의 역할이 아니다. (실서비스라면 BFunc 같은 별도 검증 코드가 담당)
+// 같은 값을 여러 번 보내도 결과가 같다 (멱등).
+app.MapPost("/checkout", (HttpContext ctx, SaveWalletRequest req) =>
+    Run(ctx, $"POST /checkout account={req.AccountId} gold={req.Gold} kinds={req.Inventory?.Count ?? 0}", () =>
+    {
+        if (string.IsNullOrWhiteSpace(req.AccountId) || req.Gold is null || req.Gold < 0 ||
+            req.Inventory is null || req.Inventory.Values.Any(c => c < 0))
+            return Results.Json(new { ok = false, error = "INVALID_REQUEST" }, statusCode: 400);
+
+        lock (gate)
+        {
+            var account = GetOrCreate(req.AccountId);
+            account.Gold = req.Gold.Value;
+            account.Inventory = req.Inventory.Where(p => p.Value > 0).ToDictionary(p => p.Key, p => p.Value);
+
+            return Results.Json(MakeSnapshot(true, null, account));
+        }
+    }));
+
 Func<HttpContext, Task<IResult>> reset = ctx =>
     Run(ctx, "POST /admin/reset", () =>
     {
@@ -154,6 +174,7 @@ Console.WriteLine($"MockShopServer  startingGold={startingGold}  maxBagKinds={ma
 app.Run();
 
 record TradeRequest(string? AccountId, string? RowName, int Price);
+record SaveWalletRequest(string? AccountId, int? Gold, Dictionary<string, int>? Inventory);
 record Snapshot(bool Ok, string? Error, int Gold, Dictionary<string, int> Inventory);
 
 class Account

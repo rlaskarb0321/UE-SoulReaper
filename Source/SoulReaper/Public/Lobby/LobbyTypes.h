@@ -6,8 +6,26 @@
 #include "LobbyTypes.generated.h"
 
 /**
- * 
+ *
  */
+
+// 로비의 진행 단계. Committing 동안 각 클라이언트가 구매 내역을 상점 서버에 결제한다.
+UENUM(BlueprintType)
+enum class ELobbyPhase : uint8
+{
+	Waiting			UMETA(DisplayName = "Waiting"),
+	Committing		UMETA(DisplayName = "Committing"),
+};
+
+// 한 플레이어의 결제 진행 상태
+UENUM(BlueprintType)
+enum class ECheckoutState : uint8
+{
+	None			UMETA(DisplayName = "None"),
+	Pending			UMETA(DisplayName = "Pending"),
+	Done			UMETA(DisplayName = "Done"),
+	Failed			UMETA(DisplayName = "Failed"),
+};
 
 USTRUCT(BlueprintType)
 struct FLobbyPlayerEntry
@@ -25,4 +43,7 @@ struct FLobbyPlayerEntry
 	
 	UPROPERTY(BlueprintReadOnly, Category = "SoulReaper|Lobby")
 	bool bIsHost = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SoulReaper|Lobby")
+	ECheckoutState CheckoutState = ECheckoutState::None;
 };

@@ -3,16 +3,19 @@
 
 #include "Lobby/LobbyGameState.h"
 
+#include "Engine/World.h"
 #include "GameFramework/PlayerState.h"
 #include "Lobby/ELobbyRoute.h"
 #include "Lobby/LobbyMenuGameMode.h"
 #include "Net/UnrealNetwork.h"
+#include "TimerManager.h"
 
 void ALobbyGameState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ALobbyGameState, LobbyPlayers);
+	DOREPLIFETIME(ALobbyGameState, Phase);
 }
 
 void ALobbyGameState::HandleLobbyRequest(int32 InRequesterId, int32 InPayload)
@@ -44,6 +47,17 @@ void ALobbyGameState::HandleLobbyRequest(int32 InRequesterId, int32 InPayload)
 			break;
 
 		HandleEnterGameRequest();
+		break;
+
+	case ELobbyRoute::CheckoutDone:
+	case ELobbyRoute::CheckoutFailed:
+		// 결제 단계가 아니거나, 이미 보고한 플레이어의 보고는 무시한다
+		if (Phase != ELobbyPhase::Committing || Entry.CheckoutState != ECheckoutState::Pending)
+			break;
+
+		Entry.CheckoutState = (LobbyRoute == ELobbyRoute::CheckoutDone) ? ECheckoutState::Done : ECheckoutState::Failed;
+		OnLobbyPlayersChanged.Broadcast();
+		EvaluateCommit();
 		break;
 		
 	default:
@@ -88,6 +102,11 @@ void ALobbyGameState::OnRep_LobbyPlayers()
 	OnLobbyPlayersChanged.Broadcast();
 }
 
+void ALobbyGameState::OnRep_Phase()
+{
+	OnLobbyPhaseChanged.Broadcast();
+}
+
 bool ALobbyGameState::IsAllReady() const
 {
 	for (const FLobbyPlayerEntry& Player : LobbyPlayers)
@@ -109,9 +128,76 @@ void ALobbyGameState::RebuildIndexCache()
 
 void ALobbyGameState::HandleEnterGameRequest()
 {
-	if (IsAllReady() == false)
+	// 전원 Ready 가 아니거나, 이미 결제 단계라면 무시 (EnterGame 연타 방지)
+	if (IsAllReady() == false || Phase != ELobbyPhase::Waiting)
 		return;
-	
-	if (ALobbyMenuGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ALobbyMenuGameMode>())
-		LobbyGameMode->StartGame();
+
+	// 결제 단계 시작: 모든 플레이어를 결제 대기 상태로 만든다
+	Phase = ELobbyPhase::Committing;
+	for (FLobbyPlayerEntry& Entry : LobbyPlayers)
+	{
+		Entry.CheckoutState = ECheckoutState::Pending;
+	}
+
+	// 응답이 오지 않는 플레이어가 있어도 무한정 기다리지 않도록 타임아웃을 건다
+	GetWorldTimerManager().SetTimer(CommitTimeoutHandle, this,
+		&ALobbyGameState::HandleCommitTimeout, CommitTimeoutSeconds, false);
+
+	// 서버(호스트)는 값을 직접 바꾼 쪽이라 OnRep 이 자동으로 불리지 않으므로 직접 호출한다
+	OnRep_Phase();
+	OnRep_LobbyPlayers();
+}
+
+void ALobbyGameState::EvaluateCommit()
+{
+	if (Phase != ELobbyPhase::Committing)
+		return;
+
+	bool bAnyFailed = false;
+	bool bAllDone = true;
+	for (const FLobbyPlayerEntry& Entry : LobbyPlayers)
+	{
+		if (Entry.CheckoutState == ECheckoutState::Failed)
+			bAnyFailed = true;
+
+		if (Entry.CheckoutState != ECheckoutState::Done)
+			bAllDone = false;
+	}
+
+	// 한 명이라도 실패 → 이동하지 않고 결제 단계를 중단한다
+	if (bAnyFailed)
+	{
+		GetWorldTimerManager().ClearTimer(CommitTimeoutHandle);
+
+		Phase = ELobbyPhase::Waiting;
+		for (FLobbyPlayerEntry& Entry : LobbyPlayers)
+		{
+			Entry.CheckoutState = ECheckoutState::None;
+		}
+
+		OnRep_Phase();
+		OnRep_LobbyPlayers();
+		return;
+	}
+
+	// 전원 완료 → 게임 시작
+	if (bAllDone)
+	{
+		GetWorldTimerManager().ClearTimer(CommitTimeoutHandle);
+
+		if (ALobbyMenuGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ALobbyMenuGameMode>())
+			LobbyGameMode->StartGame();
+	}
+}
+
+void ALobbyGameState::HandleCommitTimeout()
+{
+	// 아직 응답하지 않은 플레이어는 실패로 처리하고, 결과를 다시 판단한다
+	for (FLobbyPlayerEntry& Entry : LobbyPlayers)
+	{
+		if (Entry.CheckoutState == ECheckoutState::Pending)
+			Entry.CheckoutState = ECheckoutState::Failed;
+	}
+
+	EvaluateCommit();
 }

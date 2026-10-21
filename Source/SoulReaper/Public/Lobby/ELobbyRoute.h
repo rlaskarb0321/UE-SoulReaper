@@ -14,6 +14,8 @@ enum class ELobbyRoute : uint8
 	None					UMETA(DisplayName = "None"),
 	ToggleReady             UMETA(DisplayName = "ToggleReady"),
 	EnterGame				UMETA(DisplayName = "EnterGame"),
- 	
+	CheckoutDone			UMETA(DisplayName = "CheckoutDone"),
+	CheckoutFailed			UMETA(DisplayName = "CheckoutFailed"),
+
 	MAX						UMETA(Hidden)
 };

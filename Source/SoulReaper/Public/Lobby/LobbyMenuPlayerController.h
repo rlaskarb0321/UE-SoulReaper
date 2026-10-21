@@ -10,6 +10,7 @@
 class AGameStateBase;
 class ALobbyGameState;
 class ULobbyMenu;
+struct FShopResponse;
 /**
  *
  */
@@ -42,4 +43,9 @@ private:
 
 	UFUNCTION()
 	void RefreshLobbyMenu();
+
+	UFUNCTION()
+	void HandleLobbyPhaseChanged();
+
+	void HandleCheckoutResponse(const FShopResponse& Response);
 };

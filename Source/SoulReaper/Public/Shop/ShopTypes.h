@@ -35,5 +35,17 @@ enum class EShopResult : uint8
 	BagFull				UMETA(DisplayName = "Bag Full"),
 	InvalidItem			UMETA(DisplayName = "Invalid item"),
 	NotOwned			UMETA(DisplayName = "Not owned"),
+	NetworkError		UMETA(DisplayName = "Network error"),
+	Timeout				UMETA(DisplayName = "Timeout"),
+	ServerError			UMETA(DisplayName = "Server error"),
+	InvalidResponse		UMETA(DisplayName = "Invalid response"),
 	MAX					UMETA(Hidden)
 };
+
+// 서버 요청(조회/결제)의 결과. 요청한 쪽에게만 돌려준다.
+struct FShopResponse
+{
+	EShopResult Result = EShopResult::Success;
+};
+
+DECLARE_DELEGATE_OneParam(FOnShopResponse, const FShopResponse&);

@@ -4,8 +4,11 @@
 #include "Lobby/LobbyMenuPlayerController.h"
 
 #include "GameFramework/PlayerState.h"
+#include "Lobby/ELobbyRoute.h"
 #include "Lobby/LobbyGameState.h"
 #include "Lobby/LobbyMenu.h"
+#include "Shop/ShopSubsystem.h"
+#include "Shop/ShopTypes.h"
 
 
 void ALobbyMenuPlayerController::BeginPlay()
@@ -63,9 +66,43 @@ void ALobbyMenuPlayerController::BindLobbyGameState(ALobbyGameState* LobbyGameSt
 {
 	BoundLobbyGameState = LobbyGameState;
 	LobbyGameState->OnLobbyPlayersChanged.AddUniqueDynamic(this, &ALobbyMenuPlayerController::RefreshLobbyMenu);
+	LobbyGameState->OnLobbyPhaseChanged.AddUniqueDynamic(this, &ALobbyMenuPlayerController::HandleLobbyPhaseChanged);
 
 	// 바인딩 전에 이미 도착한 목록을 놓치지 않도록 한 번 직접 갱신
 	RefreshLobbyMenu();
+}
+
+void ALobbyMenuPlayerController::HandleLobbyPhaseChanged()
+{
+	if (BoundLobbyGameState.IsValid() == false)
+		return;
+
+	const bool bCommitting = BoundLobbyGameState->GetPhase() == ELobbyPhase::Committing;
+
+	// 결제 중에는 로비 화면 전체를 잠근다 (결제가 끝나거나 중단되면 다시 연다)
+	if (LobbyMenuWidget != nullptr)
+		LobbyMenuWidget->SetIsEnabled(bCommitting == false);
+
+	if (bCommitting == false)
+		return;
+
+	// 내 컴퓨터의 상점 서브시스템으로 내 구매 내역을 결제하고, 결과를 서버에 보고한다
+	UShopSubsystem* ShopSubsystem = GetGameInstance()->GetSubsystem<UShopSubsystem>();
+	if (ShopSubsystem == nullptr)
+	{
+		HandleRequest(static_cast<int32>(ELobbyRoute::CheckoutFailed));
+		return;
+	}
+
+	FOnShopResponse OnDone;
+	OnDone.BindUObject(this, &ALobbyMenuPlayerController::HandleCheckoutResponse);
+	ShopSubsystem->Checkout(OnDone);
+}
+
+void ALobbyMenuPlayerController::HandleCheckoutResponse(const FShopResponse& Response)
+{
+	const bool bSucceeded = Response.Result == EShopResult::Success;
+	HandleRequest(static_cast<int32>(bSucceeded ? ELobbyRoute::CheckoutDone : ELobbyRoute::CheckoutFailed));
 }
 
 void ALobbyMenuPlayerController::RefreshLobbyMenu()
@@ -96,6 +133,7 @@ void ALobbyMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 	if (BoundLobbyGameState.IsValid())
 	{
 		BoundLobbyGameState->OnLobbyPlayersChanged.RemoveDynamic(this, &ALobbyMenuPlayerController::RefreshLobbyMenu);
+		BoundLobbyGameState->OnLobbyPhaseChanged.RemoveDynamic(this, &ALobbyMenuPlayerController::HandleLobbyPhaseChanged);
 	}
 
 	Super::EndPlay(EndPlayReason);

@@ -3,6 +3,7 @@
 
 #include "Lobby/LobbyMenuGameMode.h"
 
+#include "Engine/World.h"
 #include "Lobby/LobbyGameState.h"
 #include "Lobby/LobbyMenuPlayerController.h"
 #include "Lobby/LobbyPlayerState.h"
@@ -27,4 +28,13 @@ void ALobbyMenuGameMode::PostLogin(APlayerController* NewPlayer)
 
 void ALobbyMenuGameMode::StartGame()
 {
+	if (GameLevel.IsNull())
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ALobbyMenuGameMode::StartGame] GameLevel is not set"));
+		return;
+	}
+
+	// 하드 트래블은 URL 에 listen 옵션이 있어야 호스트가 계속 리슨 서버로 남는다
+	const FString Url = GameLevel.ToSoftObjectPath().GetLongPackageName() + TEXT("?listen");
+	GetWorld()->ServerTravel(Url);
 }

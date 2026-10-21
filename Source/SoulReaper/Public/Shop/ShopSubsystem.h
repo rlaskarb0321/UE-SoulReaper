@@ -12,6 +12,7 @@
  * 
  */
 
+class FJsonObject;
 struct FShopItemRow;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnRefreshGold, int32 NewGold);
@@ -32,6 +33,7 @@ public:
 	EShopResult RequestBuy(FName RowName);
 	EShopResult RequestRefund(FName RowName);
 	void LoadWallet();
+	void Checkout(FOnShopResponse OnDone);
 	const FShopItemRow* FindItemRow(FName RowName) const;
 	TArray<FName> GetAllItemRowNames() const;
 	
@@ -46,5 +48,7 @@ private:
 	FString GetAccountId();
 	void AddGold(int32 InDelta);
 	void AddItem(FName InRowName, int32 InDelta);
+	void ApplyWalletJson(const TSharedPtr<FJsonObject>& Root);
 	void HandleWalletResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void HandleCheckoutResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FOnShopResponse OnDone);
 };
