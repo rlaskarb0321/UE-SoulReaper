@@ -28,7 +28,14 @@ protected:
 private:
 	UPROPERTY()
 	TObjectPtr<UDataTable> PopupTable;
+
+	// Initialize 에서 미리 로드해 둔 팝업 위젯 클래스. UPROPERTY 여야 GC 에 수거되지 않는다.
+	UPROPERTY()
+	TObjectPtr<UClass> CachedPopupClass;
 	
+	TSharedPtr<struct FStreamableHandle> PopupClassLoadHandle;
+
 private:
 	const FPopupTypeRow* FindPopupType(FName InRowName) const;
+	void HandlePopupClassLoaded();
 };
