@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/DataTable.h"
 #include "LobbyShop.generated.h"
 
 struct FShopResponse;
@@ -21,6 +22,10 @@ class SOULREAPER_API ULobbyShop : public UUserWidget
 	GENERATED_BODY()
 
 protected:
+	// 지갑 조회(서버 GET)가 실패했을 때 띄울 팝업. 왼쪽 버튼 = 다시 시도, 오른쪽 버튼 = 닫기
+	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Shop", meta = (RowType = "/Script/SoulReaper.PopupTypeRow"))
+	FDataTableRowHandle WalletLoadFailedPopupRow;
+
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> NotEnoughGold;
 	
@@ -70,4 +75,6 @@ private:
 	void HandleShopItemEntryClicked(FName RowName);
 	void SetupItemEntrySlots();
 	void RefreshShopItemSlots();
+	void RequestWalletLoad();
+	void HandleWalletLoaded(const FShopResponse& Response);
 };

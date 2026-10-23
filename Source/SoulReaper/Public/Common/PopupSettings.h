@@ -6,6 +6,7 @@
 #include "Engine/DeveloperSettings.h"
 #include "PopupSettings.generated.h"
 
+class ULoadingUI;
 class UPopupWidget;
 /**
  *
@@ -22,4 +23,8 @@ public:
 	// 팝업으로 띄울 위젯 (WBP_PopUp)
 	UPROPERTY(Config, EditAnywhere, Category = "Popup Widget")
 	TSoftClassPtr<UPopupWidget> PopupWidgetClass;
+
+	// 서버 응답을 기다릴 때 띄울 로딩 UI (WBP_LoadingUI)
+	UPROPERTY(Config, EditAnywhere, Category = "Popup Widget")
+	TSoftClassPtr<ULoadingUI> LoadingWidgetClass;
 };

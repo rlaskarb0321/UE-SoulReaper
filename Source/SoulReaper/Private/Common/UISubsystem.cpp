@@ -4,10 +4,12 @@
 #include "Common/UISubsystem.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Common/LoadingUI.h"
 #include "Common/PopupSettings.h"
 #include "Common/PopupTypes.h"
 #include "Common/PopupWidget.h"
 #include "Engine/AssetManager.h"
+#include "Engine/DataTable.h"
 #include "Engine/GameInstance.h"
 #include "Engine/StreamableManager.h"
 #include "GameFramework/PlayerController.h"
@@ -74,6 +76,46 @@ void UUISubsystem::ShowPopup(FName InRowName, FOnPopupButtonClicked InOnLeft, FO
 	// 4) 내용과 버튼 동작을 넘기고 화면에 올린다
 	PopupWidget->SetData(*Row, InOnLeft, InOnRight);
 	PopupWidget->AddToViewport();
+}
+
+void UUISubsystem::ShowLoading()
+{
+	if (LoadingWidget != nullptr && LoadingWidget->IsInViewport())
+		return;
+
+	const UPopupWidgetSettings* Settings = GetDefault<UPopupWidgetSettings>();
+	UClass* LoadingClass = Settings->LoadingWidgetClass.LoadSynchronous();
+	if (LoadingClass == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[UUISubsystem::ShowLoading] LoadingWidgetClass is not set in Project Settings"));
+		return;
+	}
+
+	APlayerController* OwningPlayer = GetGameInstance()->GetFirstLocalPlayerController();
+	if (OwningPlayer == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[UUISubsystem::ShowLoading] No local player controller"));
+		return;
+	}
+
+	LoadingWidget = CreateWidget<ULoadingUI>(OwningPlayer, LoadingClass);
+	if (LoadingWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[UUISubsystem::ShowLoading] Failed to create the loading widget"));
+		return;
+	}
+
+	// 같은 ZOrder 에서는 나중에 올린 위젯이 위에 그려지므로, 이미 떠 있는 상점/로비 위를 덮는다
+	LoadingWidget->AddToViewport();
+}
+
+void UUISubsystem::HideLoading()
+{
+	if (LoadingWidget == nullptr)
+		return;
+
+	LoadingWidget->RemoveFromParent();
+	LoadingWidget = nullptr;
 }
 
 void UUISubsystem::HandlePopupClassLoaded()

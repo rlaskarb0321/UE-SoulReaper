@@ -7,6 +7,10 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "UISubsystem.generated.h"
 
+class UDataTable;
+class ULoadingUI;
+struct FStreamableHandle;
+
 /**
  * 
  */
@@ -22,6 +26,10 @@ public:
 		FOnPopupButtonClicked InOnLeft = FOnPopupButtonClicked(),
 		FOnPopupButtonClicked InOnRight = FOnPopupButtonClicked());
 
+	// 화면을 덮는 로딩 UI 를 띄우고 내린다. 이미 떠 있을 때의 ShowLoading 은 무시한다.
+	void ShowLoading();
+	void HideLoading();
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
@@ -33,7 +41,11 @@ private:
 	UPROPERTY()
 	TObjectPtr<UClass> CachedPopupClass;
 	
-	TSharedPtr<struct FStreamableHandle> PopupClassLoadHandle;
+	TSharedPtr<FStreamableHandle> PopupClassLoadHandle;
+
+	// 지금 화면에 떠 있는 로딩 UI. 내릴 때 비운다 (레벨이 바뀌면 소유 플레이어가 달라지므로 재사용하지 않는다).
+	UPROPERTY()
+	TObjectPtr<ULoadingUI> LoadingWidget;
 
 private:
 	const FPopupTypeRow* FindPopupType(FName InRowName) const;

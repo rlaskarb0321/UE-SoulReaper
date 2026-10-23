@@ -136,7 +136,7 @@ FString UShopSubsystem::GetAccountId()
 	return CachedAccountId;
 }
 
-void UShopSubsystem::LoadWallet()
+void UShopSubsystem::LoadWallet(FOnShopResponse OnDone)
 {
 	const UShopSettings* Settings = GetDefault<UShopSettings>();
 
@@ -145,36 +145,48 @@ void UShopSubsystem::LoadWallet()
 		*Settings->ServerBaseUrl, *FGenericPlatformHttp::UrlEncode(GetAccountId())));
 	Request->SetVerb(TEXT("GET"));
 	Request->SetTimeout(Settings->RequestTimeoutSeconds);
-	Request->OnProcessRequestComplete().BindUObject(this, &UShopSubsystem::HandleWalletResponse);
+	Request->OnProcessRequestComplete().BindUObject(this, &UShopSubsystem::HandleWalletResponse, OnDone);
 	Request->ProcessRequest();
 }
 
-void UShopSubsystem::HandleWalletResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+void UShopSubsystem::HandleWalletResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FOnShopResponse OnDone)
 {
+	FShopResponse Result;
+
 	// (1) 연결 자체가 됐는가
 	if (bWasSuccessful == false || Response.IsValid() == false)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[UShopSubsystem::HandleWalletResponse] Connection failed or timed out"));
+		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::HandleWalletResponse] Connection failed or timed out"));
+		const bool bTimedOut = Request.IsValid() && Request->GetFailureReason() == EHttpFailureReason::TimedOut;
+		Result.Result = bTimedOut ? EShopResult::Timeout : EShopResult::NetworkError;
+		OnDone.ExecuteIfBound(Result);
 		return;
 	}
 
 	// (2) 상태 코드가 정상인가
 	if (EHttpResponseCodes::IsOk(Response->GetResponseCode()) == false)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[UShopSubsystem::HandleWalletResponse] Status %d"), Response->GetResponseCode());
+		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::HandleWalletResponse] Status %d"), Response->GetResponseCode());
+		Result.Result = EShopResult::ServerError;
+		OnDone.ExecuteIfBound(Result);
 		return;
 	}
-	
+
 	// (3) 본문(JSON)을 해석할 수 있는가
 	TSharedPtr<FJsonObject> Root;
 	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
 	if (FJsonSerializer::Deserialize(Reader, Root) == false || Root.IsValid() == false)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[UShopSubsystem::HandleWalletResponse] Invalid JSON"));
+		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::HandleWalletResponse] Invalid JSON"));
+		Result.Result = EShopResult::InvalidResponse;
+		OnDone.ExecuteIfBound(Result);
 		return;
 	}
 
 	ApplyWalletJson(Root);
+
+	Result.Result = EShopResult::Success;
+	OnDone.ExecuteIfBound(Result);
 }
 
 // 서버가 내려준 지갑({gold, inventory})으로 캐시를 교체하고 화면 갱신을 방송한다.

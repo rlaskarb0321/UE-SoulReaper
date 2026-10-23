@@ -32,7 +32,7 @@ public:
 	
 	EShopResult RequestBuy(FName RowName);
 	EShopResult RequestRefund(FName RowName);
-	void LoadWallet();
+	void LoadWallet(FOnShopResponse OnDone = FOnShopResponse());
 	void Checkout(FOnShopResponse OnDone);
 	const FShopItemRow* FindItemRow(FName RowName) const;
 	TArray<FName> GetAllItemRowNames() const;
@@ -49,6 +49,6 @@ private:
 	void AddGold(int32 InDelta);
 	void AddItem(FName InRowName, int32 InDelta);
 	void ApplyWalletJson(const TSharedPtr<FJsonObject>& Root);
-	void HandleWalletResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void HandleWalletResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FOnShopResponse OnDone);
 	void HandleCheckoutResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FOnShopResponse OnDone);
 };

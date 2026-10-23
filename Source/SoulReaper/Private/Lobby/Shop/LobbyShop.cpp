@@ -6,6 +6,7 @@
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Common/UISubsystem.h"
 #include "Shop/InventoryItem.h"
 #include "Shop/ItemEntryBase.h"
 #include "Shop/ShopSettings.h"
@@ -36,7 +37,35 @@ void ULobbyShop::NativeOnInitialized()
 
 	ShopSubsystem->OnRefreshGold.AddUObject(this, &ULobbyShop::HandleGoldChanged);
 	ShopSubsystem->OnRefreshInventory.AddUObject(this, &ULobbyShop::HandleInventoryChanged);
-	ShopSubsystem->LoadWallet();
+	RequestWalletLoad();
+}
+
+void ULobbyShop::RequestWalletLoad()
+{
+	FOnShopResponse OnDone;
+	OnDone.BindUObject(this, &ULobbyShop::HandleWalletLoaded);
+	ShopSubsystem->LoadWallet(OnDone);
+}
+
+void ULobbyShop::HandleWalletLoaded(const FShopResponse& Response)
+{
+	// 성공하면 지갑 값은 이미 OnRefreshGold/OnRefreshInventory 로 화면에 반영됐다
+	if (Response.Result == EShopResult::Success)
+		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("[ULobbyShop::HandleWalletLoaded] Wallet load failed (result %d)"), static_cast<int32>(Response.Result));
+
+	UUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
+	if (UISubsystem == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ULobbyShop::HandleWalletLoaded] UISubsystem is nullptr"));
+		return;
+	}
+
+	// 왼쪽(다시 시도): 지갑 조회를 다시 요청한다. 오른쪽(닫기): 할 일이 없으므로 넘기지 않는다.
+	FOnPopupButtonClicked OnRetry;
+	OnRetry.BindUObject(this, &ULobbyShop::RequestWalletLoad);
+	UISubsystem->ShowPopup(WalletLoadFailedPopupRow.RowName, OnRetry);
 }
 
 void ULobbyShop::SetupItemEntrySlots()
