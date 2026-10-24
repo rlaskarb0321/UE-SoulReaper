@@ -10,6 +10,7 @@ class ULobbyShop;
 class UWidgetSwitcher;
 class UButton;
 class ULobbyPlayerSlot;
+class UUISubsystem;
 class UVerticalBox;
 struct FLobbyPlayerEntry;
 /**
@@ -63,6 +64,9 @@ protected:
 	virtual void NativeOnInitialized() override;
 	
 private:
+	UPROPERTY()
+	TObjectPtr<UUISubsystem> UISubsystem;
+
 	UFUNCTION()
 	void HandleReadyClicked();
 	

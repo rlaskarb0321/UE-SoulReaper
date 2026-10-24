@@ -18,6 +18,8 @@ void ALobbyMenuPlayerController::BeginPlay()
 	if (IsLocalController() == false)
 		return;
 
+	ShopSubsystem = GetGameInstance()->GetSubsystem<UShopSubsystem>();
+
 	if (LobbyMenuWidgetClass == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[LobbyMenuPlayerController::BeginPlay] LobbyMenuWidgetClass is nullptr"));
@@ -87,7 +89,6 @@ void ALobbyMenuPlayerController::HandleLobbyPhaseChanged()
 		return;
 
 	// 내 컴퓨터의 상점 서브시스템으로 내 구매 내역을 결제하고, 결과를 서버에 보고한다
-	UShopSubsystem* ShopSubsystem = GetGameInstance()->GetSubsystem<UShopSubsystem>();
 	if (ShopSubsystem == nullptr)
 	{
 		HandleRequest(static_cast<int32>(ELobbyRoute::CheckoutFailed));

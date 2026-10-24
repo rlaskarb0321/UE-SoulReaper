@@ -10,6 +10,7 @@
 class AGameStateBase;
 class ALobbyGameState;
 class ULobbyMenu;
+class UShopSubsystem;
 struct FShopResponse;
 /**
  *
@@ -33,6 +34,9 @@ protected:
 private:
 	UPROPERTY()
 	TObjectPtr<ULobbyMenu> LobbyMenuWidget;
+
+	UPROPERTY()
+	TObjectPtr<UShopSubsystem> ShopSubsystem;
 
 	TWeakObjectPtr<ALobbyGameState> BoundLobbyGameState;
 	FDelegateHandle GameStateSetHandle;

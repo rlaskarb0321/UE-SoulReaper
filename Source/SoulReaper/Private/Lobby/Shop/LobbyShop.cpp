@@ -18,6 +18,7 @@ void ULobbyShop::NativeOnInitialized()
 	Super::NativeOnInitialized();
 
 	ShopSubsystem = GetGameInstance()->GetSubsystem<UShopSubsystem>();
+	UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
 
 	SetupItemEntrySlots();
 
@@ -43,12 +44,9 @@ void ULobbyShop::NativeOnInitialized()
 void ULobbyShop::NativeDestruct()
 {
 	// 응답을 기다리는 중에 상점이 사라지면 HandleWalletLoaded 가 불리지 않는다. 로딩 UI 가 남지 않게 여기서 내린다.
-	if (UGameInstance* GameInstance = GetGameInstance())
+	if (UISubsystem != nullptr)
 	{
-		if (UUISubsystem* UISubsystem = GameInstance->GetSubsystem<UUISubsystem>())
-		{
-			UISubsystem->HideLoading();
-		}
+		UISubsystem->HideLoading();
 	}
 
 	Super::NativeDestruct();
@@ -57,7 +55,7 @@ void ULobbyShop::NativeDestruct()
 void ULobbyShop::RequestWalletLoad()
 {
 	// 응답이 올 때까지 로딩 UI 로 화면을 덮는다
-	if (UUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>())
+	if (UISubsystem != nullptr)
 	{
 		UISubsystem->ShowLoading();
 	}
@@ -69,7 +67,6 @@ void ULobbyShop::RequestWalletLoad()
 
 void ULobbyShop::HandleWalletLoaded(const FShopResponse& Response)
 {
-	UUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
 	if (UISubsystem == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[ULobbyShop::HandleWalletLoaded] UISubsystem is nullptr"));

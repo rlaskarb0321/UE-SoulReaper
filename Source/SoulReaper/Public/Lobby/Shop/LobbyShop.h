@@ -11,6 +11,7 @@ struct FShopResponse;
 class UButton;
 class UItemEntryBase;
 class UShopSubsystem;
+class UUISubsystem;
 class UUniformGridPanel;
 class UTextBlock;
 /**
@@ -59,6 +60,9 @@ protected:
 private:
 	UPROPERTY()
 	TObjectPtr<UShopSubsystem> ShopSubsystem;
+
+	UPROPERTY()
+	TObjectPtr<UUISubsystem> UISubsystem;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UItemEntryBase>> ShopItemSlots;

@@ -10,6 +10,7 @@
 class UButton;
 class USizeBox;
 class UTextBlock;
+class UUISubsystem;
 /**
  *
  */
@@ -32,13 +33,13 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> TitleText;
-	
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ContentText;
-	
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> LeftButtonText;
-	
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> RightButtonText;
 
@@ -47,6 +48,9 @@ protected:
 	TObjectPtr<USizeBox> RightSizeBox;
 
 private:
+	UPROPERTY()
+	TObjectPtr<UUISubsystem> UISubsystem;
+
 	// 좌/우 버튼을 눌렀을 때 실행할 함수 (호출한 쪽이 정해서 넘겨 줌)
 	FOnPopupButtonClicked OnLeft;
 	FOnPopupButtonClicked OnRight;
@@ -55,9 +59,15 @@ private:
 	FName LeftNextPopupRow = NAME_None;
 	FName RightNextPopupRow = NAME_None;
 
+	// 버튼을 누르면 이 팝업을 닫을지 (false 면 남는다. 이어지는 팝업 아래에 쌓일 때 쓴다)
+	bool bCloseOnLeftClick = true;
+	bool bCloseOnRightClick = true;
+
 	UFUNCTION()
 	void HandleLeftClicked();
 
 	UFUNCTION()
 	void HandleRightClicked();
+
+	void HandleButtonClicked(FOnPopupButtonClicked Callback, bool bClose, FName NextPopupRow);
 };

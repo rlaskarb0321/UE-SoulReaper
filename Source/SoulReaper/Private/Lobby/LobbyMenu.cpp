@@ -19,7 +19,9 @@
 void ULobbyMenu::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
-	
+
+	UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
+
 	PlayerSlots.Reset();
 	for (UWidget* Child : PlayerListBox->GetAllChildren())
 	{
@@ -120,7 +122,6 @@ void ULobbyMenu::HandleHostButtonClicked()
 
 void ULobbyMenu::HandleLeaveButtonClicked()
 {
-	UUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
 	if (UISubsystem == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[ULobbyMenu::HandleLeaveButtonClicked] UISubsystem is nullptr"));

@@ -4,13 +4,20 @@
 #include "Common/PopupWidget.h"
 
 #include "Common/PopupTypes.h"
+#include "Common/UISubsystem.h"
 #include "Components/Button.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
+#include "Engine/GameInstance.h"
 
 void UPopupWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
+
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		UISubsystem = GameInstance->GetSubsystem<UUISubsystem>();
+	}
 
 	LeftButton->OnClicked.AddUniqueDynamic(this, &UPopupWidget::HandleLeftClicked);
 	RightButton->OnClicked.AddUniqueDynamic(this, &UPopupWidget::HandleRightClicked);
@@ -21,9 +28,10 @@ void UPopupWidget::SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InO
 	OnLeft = InOnLeft;
 	OnRight = InOnRight;
 
-	// 팝업 위젯은 재사용되지 않지만, 값이 남지 않도록 매번 덮어쓴다
 	LeftNextPopupRow = InRow.LeftNextPopupRow;
 	RightNextPopupRow = InRow.RightNextPopupRow;
+	bCloseOnLeftClick = InRow.bCloseOnLeftClick;
+	bCloseOnRightClick = InRow.bCloseOnRightClick;
 
 	TitleText->SetText(InRow.Title);
 	ContentText->SetText(InRow.Content);
@@ -34,21 +42,33 @@ void UPopupWidget::SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InO
 
 void UPopupWidget::HandleLeftClicked()
 {
-	const FOnPopupButtonClicked Callback = OnLeft;
-	OnLeft.Unbind();
-	OnRight.Unbind();
-
-	RemoveFromParent();
-	Callback.ExecuteIfBound();
+	HandleButtonClicked(OnLeft, bCloseOnLeftClick, LeftNextPopupRow);
 }
 
 void UPopupWidget::HandleRightClicked()
 {
-	const FOnPopupButtonClicked Callback = OnRight;
-	OnLeft.Unbind();
-	OnRight.Unbind();
-
-	RemoveFromParent();
-	Callback.ExecuteIfBound();
+	HandleButtonClicked(OnRight, bCloseOnRightClick, RightNextPopupRow);
 }
 
+void UPopupWidget::HandleButtonClicked(FOnPopupButtonClicked Callback, bool bClose, FName NextPopupRow)
+{
+	if (bClose)
+	{
+		OnLeft.Unbind();
+		OnRight.Unbind();
+		RemoveFromParent();
+	}
+
+	Callback.ExecuteIfBound();
+
+	if (NextPopupRow.IsNone())
+		return;
+
+	if (UISubsystem == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[UPopupWidget::HandleButtonClicked] UISubsystem is nullptr"));
+		return;
+	}
+
+	UISubsystem->ShowPopup(NextPopupRow);
+}
