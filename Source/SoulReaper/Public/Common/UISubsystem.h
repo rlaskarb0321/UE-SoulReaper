@@ -20,6 +20,7 @@ class SOULREAPER_API UUISubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
+
 	// RowName 에 해당하는 팝업을 내용까지 채워서 화면에 띄운다.
 	// 좌/우 버튼을 눌렀을 때 실행할 함수를 넘긴다. 쓰지 않는 쪽은 생략하면 닫기만 한다.
 	void ShowPopup(FName InRowName,

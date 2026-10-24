@@ -15,6 +15,11 @@
 #include "GameFramework/PlayerController.h"
 
 
+namespace
+{
+	constexpr int32 LoadingZOrder = 100;
+}
+
 void UUISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -105,8 +110,9 @@ void UUISubsystem::ShowLoading()
 		return;
 	}
 
-	// 같은 ZOrder 에서는 나중에 올린 위젯이 위에 그려지므로, 이미 떠 있는 상점/로비 위를 덮는다
-	LoadingWidget->AddToViewport();
+	// 위젯은 CreateWidget 시점(NativeOnInitialized)에 로딩을 요청하고 나중에 화면에 올라가는 경우가 있다.
+	// 올라가는 순서와 상관없이 항상 덮도록 ZOrder 를 높게 준다.
+	LoadingWidget->AddToViewport(LoadingZOrder);
 }
 
 void UUISubsystem::HideLoading()

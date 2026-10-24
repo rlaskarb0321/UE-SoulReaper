@@ -21,6 +21,10 @@ void UPopupWidget::SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InO
 	OnLeft = InOnLeft;
 	OnRight = InOnRight;
 
+	// 팝업 위젯은 재사용되지 않지만, 값이 남지 않도록 매번 덮어쓴다
+	LeftNextPopupRow = InRow.LeftNextPopupRow;
+	RightNextPopupRow = InRow.RightNextPopupRow;
+
 	TitleText->SetText(InRow.Title);
 	ContentText->SetText(InRow.Content);
 	LeftButtonText->SetText(InRow.LeftText);

@@ -40,8 +40,28 @@ void ULobbyShop::NativeOnInitialized()
 	RequestWalletLoad();
 }
 
+void ULobbyShop::NativeDestruct()
+{
+	// 응답을 기다리는 중에 상점이 사라지면 HandleWalletLoaded 가 불리지 않는다. 로딩 UI 가 남지 않게 여기서 내린다.
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UUISubsystem* UISubsystem = GameInstance->GetSubsystem<UUISubsystem>())
+		{
+			UISubsystem->HideLoading();
+		}
+	}
+
+	Super::NativeDestruct();
+}
+
 void ULobbyShop::RequestWalletLoad()
 {
+	// 응답이 올 때까지 로딩 UI 로 화면을 덮는다
+	if (UUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>())
+	{
+		UISubsystem->ShowLoading();
+	}
+
 	FOnShopResponse OnDone;
 	OnDone.BindUObject(this, &ULobbyShop::HandleWalletLoaded);
 	ShopSubsystem->LoadWallet(OnDone);
@@ -49,18 +69,21 @@ void ULobbyShop::RequestWalletLoad()
 
 void ULobbyShop::HandleWalletLoaded(const FShopResponse& Response)
 {
-	// 성공하면 지갑 값은 이미 OnRefreshGold/OnRefreshInventory 로 화면에 반영됐다
-	if (Response.Result == EShopResult::Success)
-		return;
-
-	UE_LOG(LogTemp, Warning, TEXT("[ULobbyShop::HandleWalletLoaded] Wallet load failed (result %d)"), static_cast<int32>(Response.Result));
-
 	UUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
 	if (UISubsystem == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[ULobbyShop::HandleWalletLoaded] UISubsystem is nullptr"));
 		return;
 	}
+
+	// 성공이든 실패든 응답이 왔으니 로딩 UI 는 먼저 내린다 (실패 팝업이 로딩 뒤에 가려지지 않게)
+	UISubsystem->HideLoading();
+
+	// 성공하면 지갑 값은 이미 OnRefreshGold/OnRefreshInventory 로 화면에 반영됐다
+	if (Response.Result == EShopResult::Success)
+		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("[ULobbyShop::HandleWalletLoaded] Wallet load failed (result %d)"), static_cast<int32>(Response.Result));
 
 	// 왼쪽(다시 시도): 지갑 조회를 다시 요청한다. 오른쪽(닫기): 할 일이 없으므로 넘기지 않는다.
 	FOnPopupButtonClicked OnRetry;

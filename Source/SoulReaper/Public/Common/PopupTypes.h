@@ -34,6 +34,12 @@ struct FPopupTypeRow : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoulReaper|Widget")
 	FName RightNextPopupRow = NAME_None;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoulReaper|Widget")
+	bool bCloseOnLeftClick = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoulReaper|Widget")
+	bool bCloseOnRightClick = true;
 };
 
 // 팝업의 좌/우 버튼을 눌렀을 때 실행할 함수 (인자 없음)

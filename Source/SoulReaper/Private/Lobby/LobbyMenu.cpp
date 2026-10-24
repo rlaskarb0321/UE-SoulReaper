@@ -120,7 +120,6 @@ void ULobbyMenu::HandleHostButtonClicked()
 
 void ULobbyMenu::HandleLeaveButtonClicked()
 {
-
 	UUISubsystem* UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
 	if (UISubsystem == nullptr)
 	{

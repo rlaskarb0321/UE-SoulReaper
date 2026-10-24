@@ -51,6 +51,10 @@ private:
 	FOnPopupButtonClicked OnLeft;
 	FOnPopupButtonClicked OnRight;
 
+	// 버튼을 누른 뒤 이어서 띄울 팝업의 행 이름 (NAME_None 이면 이어지는 팝업이 없다)
+	FName LeftNextPopupRow = NAME_None;
+	FName RightNextPopupRow = NAME_None;
+
 	UFUNCTION()
 	void HandleLeftClicked();
 
