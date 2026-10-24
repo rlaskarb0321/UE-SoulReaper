@@ -6,7 +6,6 @@
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
-#include "Common/UISubsystem.h"
 #include "Shop/InventoryItem.h"
 #include "Shop/ItemEntryBase.h"
 #include "Shop/ShopSettings.h"
@@ -18,8 +17,6 @@ void ULobbyShop::NativeOnInitialized()
 	Super::NativeOnInitialized();
 
 	ShopSubsystem = GetGameInstance()->GetSubsystem<UShopSubsystem>();
-	UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
-
 	SetupItemEntrySlots();
 
 	if (ShopSubsystem == nullptr)
@@ -38,68 +35,28 @@ void ULobbyShop::NativeOnInitialized()
 
 	ShopSubsystem->OnRefreshGold.AddUObject(this, &ULobbyShop::HandleGoldChanged);
 	ShopSubsystem->OnRefreshInventory.AddUObject(this, &ULobbyShop::HandleInventoryChanged);
-	RequestWalletLoad();
+
+	// 지갑 조회는 컨트롤러가 시작한다. 이 위젯이 만들어지기 전에 이미 끝났을 수 있으니, 불러온 값이 있으면 지금 한 번 그린다.
+	if (ShopSubsystem->GetWalletState() == EWalletState::Loaded)
+	{
+		HandleGoldChanged(ShopSubsystem->GetGold());
+		for (const TPair<FName, int32>& Pair : ShopSubsystem->GetInventory())
+		{
+			HandleInventoryChanged(Pair.Key, Pair.Value);
+		}
+	}
 }
 
 void ULobbyShop::NativeDestruct()
 {
-	// 응답을 기다리는 중에 상점이 사라지면 HandleWalletLoaded 가 불리지 않는다. 로딩 UI 가 남지 않게 여기서 내린다.
-	if (UISubsystem != nullptr)
+	// 위젯이 사라진 뒤에는 방송을 받을 필요가 없다
+	if (ShopSubsystem != nullptr)
 	{
-		UISubsystem->HideLoading();
+		ShopSubsystem->OnRefreshGold.RemoveAll(this);
+		ShopSubsystem->OnRefreshInventory.RemoveAll(this);
 	}
 
 	Super::NativeDestruct();
-}
-
-void ULobbyShop::RequestWalletLoad()
-{
-	// 응답이 올 때까지 로딩 UI 로 화면을 덮는다
-	if (UISubsystem != nullptr)
-	{
-		UISubsystem->ShowLoading();
-	}
-
-	FOnShopResponse OnDone;
-	
-	OnDone.BindUObject(this, &ULobbyShop::HandleWalletLoaded);
-	ShopSubsystem->LoadWallet(OnDone);
-}
-
-void ULobbyShop::HandleWalletLoaded(const FShopResponse& Response)
-{
-	if (UISubsystem == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ULobbyShop::HandleWalletLoaded] UISubsystem is nullptr"));
-		return;
-	}
-
-	// 성공이든 실패든 응답이 왔으니 로딩 UI 는 먼저 내린다 (실패 팝업이 로딩 뒤에 가려지지 않게)
-	UISubsystem->HideLoading();
-
-	// 성공하면 지갑 값은 이미 OnRefreshGold/OnRefreshInventory 로 화면에 반영됐다
-	if (Response.Result == EShopResult::Success)
-	{
-		CurrentRetryCount = 0;
-		return;
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[ULobbyShop::HandleWalletLoaded] Wallet load failed (result %d)"), static_cast<int32>(Response.Result));
-
-	CurrentRetryCount++;
-
-	// 한도를 넘으면 더 시도할 수 없다. 재시도 델리게이트를 넘기지 않아야 행에 지정된 동작(메인 메뉴 이동 등)이 실행된다.
-	if (CurrentRetryCount >= GetDefault<UShopSettings>()->MaxRetryCount)
-	{
-		UISubsystem->ShowPopup(WalletLoadGiveUpPopupRow.RowName);
-		return;
-	}
-
-	// 왼쪽(다시 시도): 지갑 조회를 다시 요청한다.
-	// 오른쪽(닫기): 할 일이 없으므로 넘기지 않는다.
-	FOnPopupButtonClicked OnRetry;
-	OnRetry.BindUObject(this, &ULobbyShop::RequestWalletLoad);
-	UISubsystem->ShowPopup(WalletLoadFailedPopupRow.RowName, OnRetry);
 }
 
 void ULobbyShop::SetupItemEntrySlots()

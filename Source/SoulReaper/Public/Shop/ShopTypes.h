@@ -43,6 +43,15 @@ enum class EShopResult : uint8
 	MAX					UMETA(Hidden)
 };
 
+// 서버에서 지갑을 불러오는 일의 진행 상태. 늦게 구독한 쪽도 지금 값을 읽을 수 있게 서브시스템이 들고 있는다.
+enum class EWalletState : uint8
+{
+	NotLoaded,
+	Loading,
+	Loaded,
+	Failed
+};
+
 // 서버 요청(조회/결제)의 결과. 요청한 쪽에게만 돌려준다.
 struct FShopResponse
 {

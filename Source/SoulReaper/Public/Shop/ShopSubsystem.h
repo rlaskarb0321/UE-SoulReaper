@@ -36,7 +36,12 @@ public:
 	void Checkout(FOnShopResponse OnDone);
 	const FShopItemRow* FindItemRow(FName RowName) const;
 	TArray<FName> GetAllItemRowNames() const;
-	
+
+	// 늦게 구독한 쪽이 지금 상태를 읽을 수 있도록 연다. 값은 WalletState 가 Loaded 일 때만 믿을 수 있다.
+	EWalletState GetWalletState() const { return WalletState; }
+	int32 GetGold() const { return Gold; }
+	const TMap<FName, int32>& GetInventory() const { return Inventory; }
+
 private:
 	UPROPERTY()
 	TObjectPtr<UDataTable> ItemTable;
@@ -44,6 +49,7 @@ private:
 	int32 Gold = 0;
 	TMap<FName, int32> Inventory;
 	FString CachedAccountId;
+	EWalletState WalletState = EWalletState::NotLoaded;
 
 	FString GetAccountId();
 	void AddGold(int32 InDelta);

@@ -3,10 +3,12 @@
 
 #include "Lobby/LobbyMenuPlayerController.h"
 
+#include "Common/UISubsystem.h"
 #include "GameFramework/PlayerState.h"
 #include "Lobby/ELobbyRoute.h"
 #include "Lobby/LobbyGameState.h"
 #include "Lobby/LobbyMenu.h"
+#include "Shop/ShopSettings.h"
 #include "Shop/ShopSubsystem.h"
 #include "Shop/ShopTypes.h"
 
@@ -19,6 +21,10 @@ void ALobbyMenuPlayerController::BeginPlay()
 		return;
 
 	ShopSubsystem = GetGameInstance()->GetSubsystem<UShopSubsystem>();
+	UISubsystem = GetGameInstance()->GetSubsystem<UUISubsystem>();
+
+	// 로비에 들어오면 지갑을 불러온다. 결과 값은 상점 위젯이 서브시스템에서 받고, 여기서는 성공/실패 흐름만 다룬다
+	RequestWalletLoad();
 
 	if (LobbyMenuWidgetClass == nullptr)
 	{
@@ -106,6 +112,61 @@ void ALobbyMenuPlayerController::HandleCheckoutResponse(const FShopResponse& Res
 	HandleRequest(static_cast<int32>(bSucceeded ? ELobbyRoute::CheckoutDone : ELobbyRoute::CheckoutFailed));
 }
 
+void ALobbyMenuPlayerController::RequestWalletLoad()
+{
+	if (ShopSubsystem == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ALobbyMenuPlayerController::RequestWalletLoad] ShopSubsystem is nullptr"));
+		return;
+	}
+
+	// 응답이 올 때까지 로딩 UI 로 화면을 덮는다
+	if (UISubsystem != nullptr)
+	{
+		UISubsystem->ShowLoading();
+	}
+
+	FOnShopResponse OnDone;
+	OnDone.BindUObject(this, &ALobbyMenuPlayerController::HandleWalletLoaded);
+	ShopSubsystem->LoadWallet(OnDone);
+}
+
+void ALobbyMenuPlayerController::HandleWalletLoaded(const FShopResponse& Response)
+{
+	if (UISubsystem == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ALobbyMenuPlayerController::HandleWalletLoaded] UISubsystem is nullptr"));
+		return;
+	}
+
+	// 성공이든 실패든 응답이 왔으니 로딩 UI 는 먼저 내린다 (실패 팝업이 로딩 뒤에 가려지지 않게)
+	UISubsystem->HideLoading();
+
+	// 성공하면 지갑 값은 서브시스템의 방송으로 이미 화면에 반영됐다
+	if (Response.Result == EShopResult::Success)
+	{
+		CurrentRetryCount = 0;
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[ALobbyMenuPlayerController::HandleWalletLoaded] Wallet load failed (result %d)"), static_cast<int32>(Response.Result));
+
+	CurrentRetryCount++;
+
+	// 한도를 넘으면 더 시도할 수 없다. 재시도 델리게이트를 넘기지 않아야 행에 지정된 동작(메인 메뉴 이동 등)이 실행된다.
+	if (CurrentRetryCount >= GetDefault<UShopSettings>()->MaxRetryCount)
+	{
+		UISubsystem->ShowPopup(WalletLoadGiveUpPopupRow.RowName);
+		return;
+	}
+
+	// 왼쪽(다시 시도): 지갑 조회를 다시 요청한다.
+	// 오른쪽(아니오): 넘기지 않는다. 행에 지정된 다음 팝업이 뜬다.
+	FOnPopupButtonClicked OnRetry;
+	OnRetry.BindUObject(this, &ALobbyMenuPlayerController::RequestWalletLoad);
+	UISubsystem->ShowPopup(WalletLoadFailedPopupRow.RowName, OnRetry);
+}
+
 void ALobbyMenuPlayerController::RefreshLobbyMenu()
 {
 	if (LobbyMenuWidget == nullptr || BoundLobbyGameState.IsValid() == false)
@@ -125,6 +186,12 @@ void ALobbyMenuPlayerController::HandleRequest_Implementation(int32 InPayload)
 
 void ALobbyMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	// 응답을 기다리는 중에 로비가 끝나면 HandleWalletLoaded 가 불리지 않는다. 로딩 UI 가 남지 않게 여기서 내린다.
+	if (UISubsystem != nullptr)
+	{
+		UISubsystem->HideLoading();
+	}
+
 	if (UWorld* World = GetWorld())
 	{
 		World->GameStateSetEvent.Remove(GameStateSetHandle);

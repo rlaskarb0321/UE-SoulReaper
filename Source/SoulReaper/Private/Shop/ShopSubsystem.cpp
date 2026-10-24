@@ -138,6 +138,14 @@ FString UShopSubsystem::GetAccountId()
 
 void UShopSubsystem::LoadWallet(FOnShopResponse OnDone)
 {
+	if (WalletState == EWalletState::Loading)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UShopSubsystem::LoadWallet] Already loading. Request ignored"));
+		return;
+	}
+
+	WalletState = EWalletState::Loading;
+
 	const UShopSettings* Settings = GetDefault<UShopSettings>();
 
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
@@ -157,6 +165,7 @@ void UShopSubsystem::HandleWalletResponse(FHttpRequestPtr Request, FHttpResponse
 	if (bWasSuccessful == false || Response.IsValid() == false)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::HandleWalletResponse] Connection failed or timed out"));
+		WalletState = EWalletState::Failed;
 		const bool bTimedOut = Request.IsValid() && Request->GetFailureReason() == EHttpFailureReason::TimedOut;
 		Result.Result = bTimedOut ? EShopResult::Timeout : EShopResult::NetworkError;
 		OnDone.ExecuteIfBound(Result);
@@ -167,6 +176,7 @@ void UShopSubsystem::HandleWalletResponse(FHttpRequestPtr Request, FHttpResponse
 	if (EHttpResponseCodes::IsOk(Response->GetResponseCode()) == false)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::HandleWalletResponse] Status %d"), Response->GetResponseCode());
+		WalletState = EWalletState::Failed;
 		Result.Result = EShopResult::ServerError;
 		OnDone.ExecuteIfBound(Result);
 		return;
@@ -178,11 +188,13 @@ void UShopSubsystem::HandleWalletResponse(FHttpRequestPtr Request, FHttpResponse
 	if (FJsonSerializer::Deserialize(Reader, Root) == false || Root.IsValid() == false)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::HandleWalletResponse] Invalid JSON"));
+		WalletState = EWalletState::Failed;
 		Result.Result = EShopResult::InvalidResponse;
 		OnDone.ExecuteIfBound(Result);
 		return;
 	}
 
+	WalletState = EWalletState::Loaded;
 	ApplyWalletJson(Root);
 
 	Result.Result = EShopResult::Success;
