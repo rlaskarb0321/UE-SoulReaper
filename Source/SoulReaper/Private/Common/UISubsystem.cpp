@@ -13,6 +13,8 @@
 #include "Engine/GameInstance.h"
 #include "Engine/StreamableManager.h"
 #include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 namespace
@@ -78,7 +80,16 @@ void UUISubsystem::ShowPopup(FName InRowName, FOnPopupButtonClicked InOnLeft, FO
 		return;
 	}
 
-	// 4) 내용과 버튼 동작을 넘기고 화면에 올린다
+	// 4) 호출자가 넘긴 동작이 없으면 행에 지정된 동작을 쓰고, 내용과 함께 넘겨서 화면에 올린다
+	if (InOnLeft.IsBound() == false)
+	{
+		InOnLeft = MakeActionDelegate(Row->LeftAction);
+	}
+	if (InOnRight.IsBound() == false)
+	{
+		InOnRight = MakeActionDelegate(Row->RightAction);
+	}
+
 	PopupWidget->SetData(*Row, InOnLeft, InOnRight);
 	PopupWidget->AddToViewport();
 }
@@ -124,6 +135,25 @@ void UUISubsystem::HideLoading()
 	LoadingWidget = nullptr;
 }
 
+FOnPopupButtonClicked UUISubsystem::MakeActionDelegate(EPopupAction Action)
+{
+	FOnPopupButtonClicked Delegate;
+
+	switch (Action)
+	{
+	case EPopupAction::GoToMainMenu:
+		Delegate.BindUObject(this, &UUISubsystem::GoToMainMenu);
+		break;
+	case EPopupAction::QuitGame:
+		Delegate.BindUObject(this, &UUISubsystem::QuitGame);
+		break;
+	default:
+		break;
+	}
+
+	return Delegate;
+}
+
 void UUISubsystem::HandlePopupClassLoaded()
 {
 	const UPopupWidgetSettings* Settings = GetDefault<UPopupWidgetSettings>();
@@ -147,4 +177,21 @@ const FPopupTypeRow* UUISubsystem::FindPopupType(FName InRowName) const
 	}
 
 	return Row;
+}
+
+void UUISubsystem::GoToMainMenu()
+{
+	const UPopupWidgetSettings* Settings = GetDefault<UPopupWidgetSettings>();
+	if (Settings->MainMenuLevel.IsNull())
+	{
+		UE_LOG(LogTemp, Error, TEXT("[UUISubsystem::GoToMainMenu] MainMenuLevel is not set in Project Settings"));
+		return;
+	}
+
+	UGameplayStatics::OpenLevelBySoftObjectPtr(this, Settings->MainMenuLevel);
+}
+
+void UUISubsystem::QuitGame()
+{
+	UKismetSystemLibrary::QuitGame(this, GetGameInstance()->GetFirstLocalPlayerController(), EQuitPreference::Quit, false);
 }

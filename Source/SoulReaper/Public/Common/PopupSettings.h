@@ -8,6 +8,7 @@
 
 class ULoadingUI;
 class UPopupWidget;
+class UWorld;
 /**
  *
  */
@@ -27,4 +28,8 @@ public:
 	// 서버 응답을 기다릴 때 띄울 로딩 UI (WBP_LoadingUI)
 	UPROPERTY(Config, EditAnywhere, Category = "Popup Widget")
 	TSoftClassPtr<ULoadingUI> LoadingWidgetClass;
+
+	// 팝업 동작 "Go To Main Menu" 가 이동할 레벨
+	UPROPERTY(Config, EditAnywhere, Category = "Popup Widget")
+	TSoftObjectPtr<UWorld> MainMenuLevel;
 };

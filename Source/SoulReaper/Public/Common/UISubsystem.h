@@ -51,4 +51,9 @@ private:
 private:
 	const FPopupTypeRow* FindPopupType(FName InRowName) const;
 	void HandlePopupClassLoaded();
+
+	// 행의 동작 종류에 해당하는 델리게이트를 만든다 (None 이면 빈 델리게이트)
+	FOnPopupButtonClicked MakeActionDelegate(EPopupAction Action);
+	void GoToMainMenu();
+	void QuitGame();
 };
