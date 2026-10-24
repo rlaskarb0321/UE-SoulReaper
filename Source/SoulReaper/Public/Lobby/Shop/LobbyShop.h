@@ -27,6 +27,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Shop", meta = (RowType = "/Script/SoulReaper.PopupTypeRow"))
 	FDataTableRowHandle WalletLoadFailedPopupRow;
 
+	// 재시도 한도(ShopSettings 의 MaxRetryCount)를 넘었을 때 띄울 안내 팝업. 확인 전용이며 동작은 행(DT)에 지정한다
+	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Shop", meta = (RowType = "/Script/SoulReaper.PopupTypeRow"))
+	FDataTableRowHandle WalletLoadGiveUpPopupRow;
+
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> NotEnoughGold;
 	
@@ -73,6 +77,7 @@ private:
 	TArray<FName> ShopItemRowNames;
 	int32 CurrentInvenSize = 0;
 	int32 MaxInvenSize = 0;
+	int32 CurrentRetryCount = 0;
 
 	void HandleGoldChanged(int32 NewGold);
 	void HandleInventoryChanged(FName RowName, int32 NewCount);

@@ -29,4 +29,7 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Server", meta = (ClampMin = "0.1"))
 	float RequestTimeoutSeconds = 5.f;
+	
+	UPROPERTY(Config, EditAnywhere, Category = "Server")
+	int32 MaxRetryCount = 5;
 };

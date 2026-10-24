@@ -8,7 +8,6 @@
 #include "Components/VerticalBox.h"
 #include "Components/WidgetSwitcher.h"
 #include "GameFramework/PlayerState.h"
-#include "Kismet/GameplayStatics.h"
 #include "Lobby/ELobbyRoute.h"
 #include "Lobby/LobbyMenuPlayerController.h"
 #include "Lobby/LobbyPlayerSlot.h"
@@ -128,17 +127,6 @@ void ULobbyMenu::HandleLeaveButtonClicked()
 		return;
 	}
 	
-	FOnPopupButtonClicked OnLeft;
-	OnLeft.BindWeakLambda(this, [this]()
-	{
-		if (MainMenuLevel.IsNull())
-		{
-			UE_LOG(LogTemp, Error, TEXT("[ULobbyMenu::HandleLeaveButtonClicked] MainMenu is Null"));
-			return;
-		}
-		UGameplayStatics::OpenLevelBySoftObjectPtr(this, MainMenuLevel);
-	});
-
-	// 오른쪽(취소): 따로 할 일이 없으므로 넘기지 않는다. 팝업이 스스로 닫힌다.
-	UISubsystem->ShowPopup(LeavePopupRow.RowName, OnLeft);
+	// 좌/우 버튼의 동작은 팝업 행(DT)에 지정되어 있다
+	UISubsystem->ShowPopup(LeavePopupRow.RowName);
 }

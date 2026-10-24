@@ -34,9 +34,6 @@ public:
 	void RefreshPlayers(const TArray<FLobbyPlayerEntry>& Entries);
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Lobby")
-	TSoftObjectPtr<UWorld> MainMenuLevel;
-
 	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Lobby", meta = (RowType = "/Script/SoulReaper.PopupTypeRow"))
 	FDataTableRowHandle LeavePopupRow;
 	
