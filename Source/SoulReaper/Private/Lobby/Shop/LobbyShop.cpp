@@ -82,7 +82,8 @@ void ULobbyShop::HandleWalletLoaded(const FShopResponse& Response)
 
 	UE_LOG(LogTemp, Warning, TEXT("[ULobbyShop::HandleWalletLoaded] Wallet load failed (result %d)"), static_cast<int32>(Response.Result));
 
-	// 왼쪽(다시 시도): 지갑 조회를 다시 요청한다. 오른쪽(닫기): 할 일이 없으므로 넘기지 않는다.
+	// 왼쪽(다시 시도): 지갑 조회를 다시 요청한다. 
+	// 오른쪽(닫기): 할 일이 없으므로 넘기지 않는다.
 	FOnPopupButtonClicked OnRetry;
 	OnRetry.BindUObject(this, &ULobbyShop::RequestWalletLoad);
 	UISubsystem->ShowPopup(WalletLoadFailedPopupRow.RowName, OnRetry);

@@ -24,6 +24,9 @@ public:
 
 protected:
 	virtual void NativeOnInitialized() override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> LeftButton;
@@ -42,6 +45,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> RightButtonText;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<USizeBox> PopupSizeBox;
 
 	// 확인만 있는 팝업일 때 오른쪽 버튼 전체(크기 박스 포함)를 숨기기 위한 컨테이너
 	UPROPERTY(meta = (BindWidget))
@@ -62,6 +68,11 @@ private:
 	// 버튼을 누르면 이 팝업을 닫을지 (false 면 남는다. 이어지는 팝업 아래에 쌓일 때 쓴다)
 	bool bCloseOnLeftClick = true;
 	bool bCloseOnRightClick = true;
+
+	// 팝업 본체(PopupSizeBox)를 마우스로 끌어 옮기는 중인지, 그리고 끌기를 시작한 시점의 값
+	bool bDragging = false;
+	FVector2D DragStartMousePosition = FVector2D::ZeroVector;
+	FVector2D DragStartTranslation = FVector2D::ZeroVector;
 
 	UFUNCTION()
 	void HandleLeftClicked();
