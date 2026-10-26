@@ -27,6 +27,8 @@ int maxBagKinds = app.Configuration.GetValue("MaxBagKinds", 3);        // 클라
 string defaultFail = (app.Configuration["DefaultFail"] ?? "").ToLowerInvariant();
 int defaultDelayMs = app.Configuration.GetValue("DefaultDelay", 0);
 string failPath = app.Configuration["FailPath"] ?? "";
+//   dotnet run -- --DefaultFail=500 --FailPath=/checkout --FailAccount=_pie1   계정 ID 에 _pie1 이 들어간 요청만 실패 (PIE 에서 한 명만 실패시킬 때)
+string failAccount = app.Configuration["FailAccount"] ?? "";
 
 var accounts = new Dictionary<string, Account>();
 var gate = new object();
@@ -45,12 +47,14 @@ Snapshot MakeSnapshot(bool ok, string? error, Account account) =>
     new(ok, error, account.Gold, new Dictionary<string, int>(account.Inventory));
 
 // delay / fail 쿼리를 먼저 처리하고, 정상이면 logic 을 실행한다.
-async Task<IResult> Run(HttpContext ctx, string label, Func<IResult> logic)
+async Task<IResult> Run(HttpContext ctx, string label, Func<IResult> logic, string? accountId = null)
 {
     string fail = ctx.Request.Query["fail"].ToString().ToLowerInvariant();
     int.TryParse(ctx.Request.Query["delay"], out int delayMs);
 
     bool useDefaults = failPath.Length == 0 || string.Equals(ctx.Request.Path.Value, failPath, StringComparison.OrdinalIgnoreCase);
+    if (failAccount.Length > 0 && (accountId ?? "").Contains(failAccount, StringComparison.OrdinalIgnoreCase) == false)
+        useDefaults = false;
     if (useDefaults)
     {
         if (fail.Length == 0)
@@ -110,7 +114,7 @@ app.MapGet("/wallet", (HttpContext ctx, string? accountId) =>
         {
             return Results.Json(MakeSnapshot(true, null, GetOrCreate(accountId)));
         }
-    }));
+    }, accountId));
 
 app.MapPost("/buy", (HttpContext ctx, TradeRequest req) =>
     Run(ctx, $"POST /buy account={req.AccountId} row={req.RowName} price={req.Price}", () =>
@@ -132,7 +136,7 @@ app.MapPost("/buy", (HttpContext ctx, TradeRequest req) =>
             account.Inventory[req.RowName] = account.Inventory.GetValueOrDefault(req.RowName) + 1;
             return Results.Json(MakeSnapshot(true, null, account));
         }
-    }));
+    }, req.AccountId));
 
 app.MapPost("/refund", (HttpContext ctx, TradeRequest req) =>
     Run(ctx, $"POST /refund account={req.AccountId} row={req.RowName} price={req.Price}", () =>
@@ -155,7 +159,7 @@ app.MapPost("/refund", (HttpContext ctx, TradeRequest req) =>
 
             return Results.Json(MakeSnapshot(true, null, account));
         }
-    }));
+    }, req.AccountId));
 
 // 클라이언트가 보낸 지갑({gold, inventory})을 그대로 저장한다.
 // 치트 검증은 이 서버의 역할이 아니다. (실서비스라면 BFunc 같은 별도 검증 코드가 담당)
@@ -175,7 +179,7 @@ app.MapPost("/checkout", (HttpContext ctx, SaveWalletRequest req) =>
 
             return Results.Json(MakeSnapshot(true, null, account));
         }
-    }));
+    }, req.AccountId));
 
 Func<HttpContext, Task<IResult>> reset = ctx =>
     Run(ctx, "POST /admin/reset", () =>

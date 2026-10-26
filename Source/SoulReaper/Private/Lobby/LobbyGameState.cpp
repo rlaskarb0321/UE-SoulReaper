@@ -56,6 +56,9 @@ void ALobbyGameState::HandleLobbyRequest(int32 InRequesterId, int32 InPayload)
 		if (Phase != ELobbyPhase::Committing || Entry.CheckoutState != ECheckoutState::Pending)
 			break;
 
+		if (LobbyRoute == ELobbyRoute::CheckoutFailed && FirstFailedPlayerId == INDEX_NONE)
+			FirstFailedPlayerId = InRequesterId;
+
 		Entry.CheckoutState = (LobbyRoute == ELobbyRoute::CheckoutDone) ? ECheckoutState::Done : ECheckoutState::Failed;
 		OnRep_LobbyPlayers();
 		EvaluateCommit();
@@ -64,6 +67,11 @@ void ALobbyGameState::HandleLobbyRequest(int32 InRequesterId, int32 InPayload)
 	default:
 		break;
 	}
+}
+
+void ALobbyGameState::Multicast_CheckoutFailed_Implementation(int32 InFailedPlayerId)
+{
+	OnLobbyCheckoutFailed.Broadcast(InFailedPlayerId);
 }
 
 void ALobbyGameState::AddLobbyPlayer(const APlayerController* InPlayerController)
@@ -135,6 +143,7 @@ void ALobbyGameState::HandleEnterGameRequest()
 
 	// 결제 단계 시작: 모든 플레이어를 결제 대기 상태로 만든다
 	Phase = ELobbyPhase::Committing;
+	FirstFailedPlayerId = INDEX_NONE;
 	for (FLobbyPlayerEntry& Entry : LobbyPlayers)
 	{
 		Entry.CheckoutState = ECheckoutState::Pending;
@@ -178,6 +187,10 @@ void ALobbyGameState::EvaluateCommit()
 
 		OnRep_Phase();
 		OnRep_LobbyPlayers();
+
+		// 모든 플레이어에게 누가(보고 없이 타임아웃으로 중단되었다면 INDEX_NONE) 실패했는지 알린다
+		Multicast_CheckoutFailed(FirstFailedPlayerId);
+		FirstFailedPlayerId = INDEX_NONE;
 		return;
 	}
 

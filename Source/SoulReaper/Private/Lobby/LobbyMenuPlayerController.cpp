@@ -75,6 +75,7 @@ void ALobbyMenuPlayerController::BindLobbyGameState(ALobbyGameState* LobbyGameSt
 	BoundLobbyGameState = LobbyGameState;
 	LobbyGameState->OnLobbyPlayersChanged.AddUniqueDynamic(this, &ALobbyMenuPlayerController::RefreshLobbyMenu);
 	LobbyGameState->OnLobbyPhaseChanged.AddUniqueDynamic(this, &ALobbyMenuPlayerController::HandleLobbyPhaseChanged);
+	LobbyGameState->OnLobbyCheckoutFailed.AddUniqueDynamic(this, &ALobbyMenuPlayerController::HandleLobbyCheckoutFailed);
 
 	// 바인딩 전에 이미 도착한 목록을 놓치지 않도록 한 번 직접 갱신
 	RefreshLobbyMenu();
@@ -110,11 +111,12 @@ void ALobbyMenuPlayerController::HandleCheckoutResponse(const FShopResponse& Res
 {
 	const bool bSucceeded = Response.NetworkResult == ENetworkResponse::Success;
 
-	// 서버에는 성공/실패만 보고한다. 실패 이유는 이 컴퓨터의 플레이어에게만 알린다.
+	// 서버에는 성공/실패만 보고한다. 다른 플레이어에게는 서버가 "누가 실패했다"를 알려 준다.
 	HandleRequest(static_cast<int32>(bSucceeded ? ELobbyRoute::CheckoutDone : ELobbyRoute::CheckoutFailed));
 	if (bSucceeded)
 		return;
 
+	// 실패한 본인에게는 이유(에러 코드)와 함께 바로 알린다
 	const FString ErrorCode = ShopSubsystem != nullptr ? ShopSubsystem->GetErrorCode(Response.NetworkResult) : FString();
 	UE_LOG(LogTemp, Warning, TEXT("[ALobbyMenuPlayerController::HandleCheckoutResponse] Checkout failed (%s)"), *ErrorCode);
 
@@ -124,6 +126,19 @@ void ALobbyMenuPlayerController::HandleCheckoutResponse(const FShopResponse& Res
 	FFormatNamedArguments Args;
 	Args.Add(TEXT("ErrorCode"), FText::FromString(ErrorCode));
 	UISubsystem->ShowPopup(CheckoutFailedPopupRow.RowName, FOnPopupButtonClicked(), FOnPopupButtonClicked(), Args);
+}
+
+void ALobbyMenuPlayerController::HandleLobbyCheckoutFailed(int32 InFailedPlayerId)
+{
+	// 실패한 본인은 이미 자기 응답을 받을 때 안내를 봤다
+	const int32 MyPlayerId = PlayerState != nullptr ? PlayerState->GetPlayerId() : INDEX_NONE;
+	if (InFailedPlayerId == MyPlayerId)
+		return;
+
+	if (UISubsystem == nullptr)
+		return;
+
+	UISubsystem->ShowPopup(PurchaseEnterFailedPopupRow.RowName);
 }
 
 void ALobbyMenuPlayerController::RequestWalletLoad()
@@ -219,6 +234,7 @@ void ALobbyMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 	{
 		BoundLobbyGameState->OnLobbyPlayersChanged.RemoveDynamic(this, &ALobbyMenuPlayerController::RefreshLobbyMenu);
 		BoundLobbyGameState->OnLobbyPhaseChanged.RemoveDynamic(this, &ALobbyMenuPlayerController::HandleLobbyPhaseChanged);
+		BoundLobbyGameState->OnLobbyCheckoutFailed.RemoveDynamic(this, &ALobbyMenuPlayerController::HandleLobbyCheckoutFailed);
 	}
 
 	Super::EndPlay(EndPlayReason);
