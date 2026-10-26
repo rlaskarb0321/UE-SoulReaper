@@ -8,6 +8,7 @@
 #include "Lobby/ELobbyRoute.h"
 #include "Lobby/LobbyMenuGameMode.h"
 #include "Net/UnrealNetwork.h"
+#include "Shop/ShopSettings.h"
 #include "TimerManager.h"
 
 void ALobbyGameState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -39,7 +40,7 @@ void ALobbyGameState::HandleLobbyRequest(int32 InRequesterId, int32 InPayload)
 			break;		
 
 		Entry.bIsReady = !Entry.bIsReady;
-		OnLobbyPlayersChanged.Broadcast();
+		OnRep_LobbyPlayers();
 		break;
 		
 	case ELobbyRoute::EnterGame:
@@ -56,7 +57,7 @@ void ALobbyGameState::HandleLobbyRequest(int32 InRequesterId, int32 InPayload)
 			break;
 
 		Entry.CheckoutState = (LobbyRoute == ELobbyRoute::CheckoutDone) ? ECheckoutState::Done : ECheckoutState::Failed;
-		OnLobbyPlayersChanged.Broadcast();
+		OnRep_LobbyPlayers();
 		EvaluateCommit();
 		break;
 		
@@ -141,7 +142,7 @@ void ALobbyGameState::HandleEnterGameRequest()
 
 	// 응답이 오지 않는 플레이어가 있어도 무한정 기다리지 않도록 타임아웃을 건다
 	GetWorldTimerManager().SetTimer(CommitTimeoutHandle, this,
-		&ALobbyGameState::HandleCommitTimeout, CommitTimeoutSeconds, false);
+		&ALobbyGameState::HandleCommitTimeout, GetDefault<UShopSettings>()->CommitTimeoutSeconds, false);
 
 	// 서버(호스트)는 값을 직접 바꾼 쪽이라 OnRep 이 자동으로 불리지 않으므로 직접 호출한다
 	OnRep_Phase();

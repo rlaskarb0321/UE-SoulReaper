@@ -23,9 +23,11 @@ public:
 
 	// RowName 에 해당하는 팝업을 내용까지 채워서 화면에 띄운다.
 	// 좌/우 버튼을 눌렀을 때 실행할 함수를 넘긴다. 쓰지 않는 쪽은 생략하면 닫기만 한다.
+	// InArgs 는 행의 문구 안의 {이름} 자리를 채운다 (예: 에러 코드)
 	void ShowPopup(FName InRowName,
 		FOnPopupButtonClicked InOnLeft = FOnPopupButtonClicked(),
-		FOnPopupButtonClicked InOnRight = FOnPopupButtonClicked());
+		FOnPopupButtonClicked InOnRight = FOnPopupButtonClicked(),
+		const FFormatNamedArguments& InArgs = FFormatNamedArguments());
 
 	// 화면을 덮는 로딩 UI 를 띄우고 내린다. 이미 떠 있을 때의 ShowLoading 은 무시한다.
 	void ShowLoading();

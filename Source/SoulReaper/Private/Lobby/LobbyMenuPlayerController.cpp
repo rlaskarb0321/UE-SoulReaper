@@ -108,8 +108,22 @@ void ALobbyMenuPlayerController::HandleLobbyPhaseChanged()
 
 void ALobbyMenuPlayerController::HandleCheckoutResponse(const FShopResponse& Response)
 {
-	const bool bSucceeded = Response.Result == EShopResult::Success;
+	const bool bSucceeded = Response.NetworkResult == ENetworkResponse::Success;
+
+	// 서버에는 성공/실패만 보고한다. 실패 이유는 이 컴퓨터의 플레이어에게만 알린다.
 	HandleRequest(static_cast<int32>(bSucceeded ? ELobbyRoute::CheckoutDone : ELobbyRoute::CheckoutFailed));
+	if (bSucceeded)
+		return;
+
+	const FString ErrorCode = ShopSubsystem != nullptr ? ShopSubsystem->GetErrorCode(Response.NetworkResult) : FString();
+	UE_LOG(LogTemp, Warning, TEXT("[ALobbyMenuPlayerController::HandleCheckoutResponse] Checkout failed (%s)"), *ErrorCode);
+
+	if (UISubsystem == nullptr)
+		return;
+
+	FFormatNamedArguments Args;
+	Args.Add(TEXT("ErrorCode"), FText::FromString(ErrorCode));
+	UISubsystem->ShowPopup(CheckoutFailedPopupRow.RowName, FOnPopupButtonClicked(), FOnPopupButtonClicked(), Args);
 }
 
 void ALobbyMenuPlayerController::RequestWalletLoad()
@@ -143,17 +157,17 @@ void ALobbyMenuPlayerController::HandleWalletLoaded(const FShopResponse& Respons
 	UISubsystem->HideLoading();
 
 	// 성공하면 지갑 값은 서브시스템의 방송으로 이미 화면에 반영됐다
-	if (Response.Result == EShopResult::Success)
+	if (Response.NetworkResult == ENetworkResponse::Success)
 	{
 		CurrentRetryCount = 0;
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[ALobbyMenuPlayerController::HandleWalletLoaded] Wallet load failed (result %d)"), static_cast<int32>(Response.Result));
-
-	CurrentRetryCount++;
+	const FString ErrorCode = ShopSubsystem != nullptr ? ShopSubsystem->GetErrorCode(Response.NetworkResult) : FString();
+	UE_LOG(LogTemp, Warning, TEXT("[ALobbyMenuPlayerController::HandleWalletLoaded] Wallet load failed (%s)"), *ErrorCode);
 
 	// 한도를 넘으면 더 시도할 수 없다. 재시도 델리게이트를 넘기지 않아야 행에 지정된 동작(메인 메뉴 이동 등)이 실행된다.
+	CurrentRetryCount++;
 	if (CurrentRetryCount >= GetDefault<UShopSettings>()->MaxRetryCount)
 	{
 		UISubsystem->ShowPopup(WalletLoadGiveUpPopupRow.RowName);
@@ -164,7 +178,10 @@ void ALobbyMenuPlayerController::HandleWalletLoaded(const FShopResponse& Respons
 	// 오른쪽(아니오): 넘기지 않는다. 행에 지정된 다음 팝업이 뜬다.
 	FOnPopupButtonClicked OnRetry;
 	OnRetry.BindUObject(this, &ALobbyMenuPlayerController::RequestWalletLoad);
-	UISubsystem->ShowPopup(WalletLoadFailedPopupRow.RowName, OnRetry);
+
+	FFormatNamedArguments Args;
+	Args.Add(TEXT("ErrorCode"), FText::FromString(ErrorCode));
+	UISubsystem->ShowPopup(WalletLoadFailedPopupRow.RowName, OnRetry, FOnPopupButtonClicked(), Args);
 }
 
 void ALobbyMenuPlayerController::RefreshLobbyMenu()

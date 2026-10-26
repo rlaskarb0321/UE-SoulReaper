@@ -44,7 +44,8 @@ void UUISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 }
 
-void UUISubsystem::ShowPopup(FName InRowName, FOnPopupButtonClicked InOnLeft, FOnPopupButtonClicked InOnRight)
+void UUISubsystem::ShowPopup(FName InRowName, FOnPopupButtonClicked InOnLeft, FOnPopupButtonClicked InOnRight,
+	const FFormatNamedArguments& InArgs)
 {
 	// 1) 행을 찾는다
 	const FPopupTypeRow* Row = FindPopupType(InRowName);
@@ -90,7 +91,7 @@ void UUISubsystem::ShowPopup(FName InRowName, FOnPopupButtonClicked InOnLeft, FO
 		InOnRight = MakeActionDelegate(Row->RightAction);
 	}
 
-	PopupWidget->SetData(*Row, InOnLeft, InOnRight);
+	PopupWidget->SetData(*Row, InOnLeft, InOnRight, InArgs);
 	PopupWidget->AddToViewport();
 }
 

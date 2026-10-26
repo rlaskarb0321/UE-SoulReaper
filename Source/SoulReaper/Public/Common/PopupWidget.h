@@ -20,7 +20,9 @@ class SOULREAPER_API UPopupWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InOnLeft, FOnPopupButtonClicked InOnRight);
+	// InArgs 는 행의 Title/Content 안의 {이름} 자리를 채운다 (예: (ErrorCode: {ErrorCode}))
+	void SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InOnLeft, FOnPopupButtonClicked InOnRight,
+		const FFormatNamedArguments& InArgs = FFormatNamedArguments());
 
 protected:
 	virtual void NativeOnInitialized() override;

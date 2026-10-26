@@ -38,6 +38,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Shop", meta = (RowType = "/Script/SoulReaper.PopupTypeRow"))
 	FDataTableRowHandle WalletLoadGiveUpPopupRow;
 
+	// 결제(서버 POST)가 실패했을 때 로컬 플레이어에게 띄울 팝업. 확인 전용 행이며 문구에 {ErrorCode} 를 쓴다
+	UPROPERTY(EditDefaultsOnly, Category = "SoulReaper|Shop", meta = (RowType = "/Script/SoulReaper.PopupTypeRow"))
+	FDataTableRowHandle CheckoutFailedPopupRow;
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 

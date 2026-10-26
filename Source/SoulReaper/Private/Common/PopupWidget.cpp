@@ -25,7 +25,8 @@ void UPopupWidget::NativeOnInitialized()
 	RightButton->OnClicked.AddUniqueDynamic(this, &UPopupWidget::HandleRightClicked);
 }
 
-void UPopupWidget::SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InOnLeft, FOnPopupButtonClicked InOnRight)
+void UPopupWidget::SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InOnLeft, FOnPopupButtonClicked InOnRight,
+	const FFormatNamedArguments& InArgs)
 {
 	OnLeft = InOnLeft;
 	OnRight = InOnRight;
@@ -35,8 +36,11 @@ void UPopupWidget::SetData(const FPopupTypeRow& InRow, FOnPopupButtonClicked InO
 	bCloseOnLeftClick = InRow.bCloseOnLeftClick;
 	bCloseOnRightClick = InRow.bCloseOnRightClick;
 
-	TitleText->SetText(InRow.Title);
-	ContentText->SetText(InRow.Content);
+	// 채울 인자가 없으면 문구를 그대로 쓴다
+	const bool bHasArgs = InArgs.Num() > 0;
+	
+	TitleText->SetText(bHasArgs ? FText::Format(InRow.Title, InArgs) : InRow.Title);
+	ContentText->SetText(bHasArgs ? FText::Format(InRow.Content, InArgs) : InRow.Content);
 	LeftButtonText->SetText(InRow.LeftText);
 	RightButtonText->SetText(InRow.RightText);
 	RightSizeBox->SetVisibility(InRow.bIsConfirmOnly ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);

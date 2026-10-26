@@ -23,12 +23,37 @@ void UShopSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	const UShopSettings* Settings = GetDefault<UShopSettings>();
 	
 	Gold = Settings->StartingGold;
+	NetworkErrorTable = Settings->NetworkErrorTable.LoadSynchronous();
+	
+	if (NetworkErrorTable == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UShopSubsystem::Initialize] NetworkErrorTable is nullptr. Default error codes will be used"));
+	}
+
 	ItemTable = Settings->ShopItemTable.LoadSynchronous();
 	if (ItemTable == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::Initialize] ItemTable is nullptr"));
 		return;
 	}
+}
+
+FString UShopSubsystem::GetErrorCode(ENetworkResponse InResult) const
+{
+	static const FString DefaultErrorCode = TEXT("E-0000");
+
+	if (NetworkErrorTable == nullptr)
+		return DefaultErrorCode;
+
+	const FName RowName(*StaticEnum<ENetworkResponse>()->GetNameStringByValue(static_cast<int64>(InResult)));
+	const FNetworkErrorRow* Row = NetworkErrorTable->FindRow<FNetworkErrorRow>(RowName, TEXT("UShopSubsystem::GetErrorCode"), false);
+	if (Row == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UShopSubsystem::GetErrorCode] Row '%s' does not exist in NetworkErrorTable"), *RowName.ToString());
+		return DefaultErrorCode;
+	}
+
+	return Row->ErrorCode;
 }
 
 EShopResult UShopSubsystem::RequestBuy(FName RowName)
@@ -167,7 +192,7 @@ void UShopSubsystem::HandleWalletResponse(FHttpRequestPtr Request, FHttpResponse
 		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::HandleWalletResponse] Connection failed or timed out"));
 		WalletState = EWalletState::Failed;
 		const bool bTimedOut = Request.IsValid() && Request->GetFailureReason() == EHttpFailureReason::TimedOut;
-		Result.Result = bTimedOut ? EShopResult::Timeout : EShopResult::NetworkError;
+		Result.NetworkResult = bTimedOut ? ENetworkResponse::Timeout : ENetworkResponse::NetworkError;
 		OnDone.ExecuteIfBound(Result);
 		return;
 	}
@@ -177,7 +202,7 @@ void UShopSubsystem::HandleWalletResponse(FHttpRequestPtr Request, FHttpResponse
 	{
 		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::HandleWalletResponse] Status %d"), Response->GetResponseCode());
 		WalletState = EWalletState::Failed;
-		Result.Result = EShopResult::ServerError;
+		Result.NetworkResult = ENetworkResponse::ServerError;
 		OnDone.ExecuteIfBound(Result);
 		return;
 	}
@@ -189,7 +214,7 @@ void UShopSubsystem::HandleWalletResponse(FHttpRequestPtr Request, FHttpResponse
 	{
 		UE_LOG(LogTemp, Error, TEXT("[UShopSubsystem::HandleWalletResponse] Invalid JSON"));
 		WalletState = EWalletState::Failed;
-		Result.Result = EShopResult::InvalidResponse;
+		Result.NetworkResult = ENetworkResponse::InvalidResponse;
 		OnDone.ExecuteIfBound(Result);
 		return;
 	}
@@ -197,7 +222,6 @@ void UShopSubsystem::HandleWalletResponse(FHttpRequestPtr Request, FHttpResponse
 	WalletState = EWalletState::Loaded;
 	ApplyWalletJson(Root);
 
-	Result.Result = EShopResult::Success;
 	OnDone.ExecuteIfBound(Result);
 }
 
@@ -277,7 +301,7 @@ void UShopSubsystem::HandleCheckoutResponse(FHttpRequestPtr Request, FHttpRespon
 	if (bWasSuccessful == false || Response.IsValid() == false)
 	{
 		const bool bTimedOut = Request.IsValid() && Request->GetFailureReason() == EHttpFailureReason::TimedOut;
-		Result.Result = bTimedOut ? EShopResult::Timeout : EShopResult::NetworkError;
+		Result.NetworkResult = bTimedOut ? ENetworkResponse::Timeout : ENetworkResponse::NetworkError;
 		OnDone.ExecuteIfBound(Result);
 		return;
 	}
@@ -285,7 +309,7 @@ void UShopSubsystem::HandleCheckoutResponse(FHttpRequestPtr Request, FHttpRespon
 	// (2) 상태 코드가 정상인가
 	if (EHttpResponseCodes::IsOk(Response->GetResponseCode()) == false)
 	{
-		Result.Result = EShopResult::ServerError;
+		Result.NetworkResult = ENetworkResponse::ServerError;
 		OnDone.ExecuteIfBound(Result);
 		return;
 	}
@@ -295,6 +319,9 @@ void UShopSubsystem::HandleCheckoutResponse(FHttpRequestPtr Request, FHttpRespon
 	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
 	const bool bParsed = FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid();
 
-	Result.Result = bParsed ? EShopResult::Success : EShopResult::InvalidResponse;
+	if (bParsed == false)
+	{
+		Result.NetworkResult = ENetworkResponse::InvalidResponse;
+	}
 	OnDone.ExecuteIfBound(Result);
 }

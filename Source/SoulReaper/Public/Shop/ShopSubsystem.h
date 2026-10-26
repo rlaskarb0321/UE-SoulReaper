@@ -37,6 +37,9 @@ public:
 	const FShopItemRow* FindItemRow(FName RowName) const;
 	TArray<FName> GetAllItemRowNames() const;
 
+	// 통신 결과에 해당하는 사용자용 에러 코드. 표에 없으면 기본 코드를 돌려준다
+	FString GetErrorCode(ENetworkResponse InResult) const;
+
 	// 늦게 구독한 쪽이 지금 상태를 읽을 수 있도록 연다. 값은 WalletState 가 Loaded 일 때만 믿을 수 있다.
 	EWalletState GetWalletState() const { return WalletState; }
 	int32 GetGold() const { return Gold; }
@@ -45,7 +48,10 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<UDataTable> ItemTable;
-	
+
+	UPROPERTY()
+	TObjectPtr<UDataTable> NetworkErrorTable;
+
 	int32 Gold = 0;
 	TMap<FName, int32> Inventory;
 	FString CachedAccountId;

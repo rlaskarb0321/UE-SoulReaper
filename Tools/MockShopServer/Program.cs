@@ -19,6 +19,15 @@ var app = builder.Build();
 int startingGold = app.Configuration.GetValue("StartingGold", 1000);   // 클라이언트 UShopSettings::StartingGold 와 맞출 것
 int maxBagKinds = app.Configuration.GetValue("MaxBagKinds", 3);        // 클라이언트 UShopSettings::MaxBagKinds 와 맞출 것
 
+// 클라이언트는 요청 URL 에 ?fail= 을 붙이지 않으므로, 서버를 켤 때 실패 모드를 정할 수 있게 한다.
+//   dotnet run -- --DefaultFail=500                         모든 요청이 500
+//   dotnet run -- --DefaultFail=timeout --FailPath=/wallet  /wallet 만 응답 없음
+//   dotnet run -- --DefaultDelay=3000                       모든 요청을 3초 지연
+// 요청 쿼리(?fail=, ?delay=)가 있으면 그쪽이 우선한다.
+string defaultFail = (app.Configuration["DefaultFail"] ?? "").ToLowerInvariant();
+int defaultDelayMs = app.Configuration.GetValue("DefaultDelay", 0);
+string failPath = app.Configuration["FailPath"] ?? "";
+
 var accounts = new Dictionary<string, Account>();
 var gate = new object();
 
@@ -40,6 +49,15 @@ async Task<IResult> Run(HttpContext ctx, string label, Func<IResult> logic)
 {
     string fail = ctx.Request.Query["fail"].ToString().ToLowerInvariant();
     int.TryParse(ctx.Request.Query["delay"], out int delayMs);
+
+    bool useDefaults = failPath.Length == 0 || string.Equals(ctx.Request.Path.Value, failPath, StringComparison.OrdinalIgnoreCase);
+    if (useDefaults)
+    {
+        if (fail.Length == 0)
+            fail = defaultFail;
+        if (delayMs == 0)
+            delayMs = defaultDelayMs;
+    }
 
     Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] {label}  delay={delayMs}  fail={(fail.Length == 0 ? "none" : fail)}");
 

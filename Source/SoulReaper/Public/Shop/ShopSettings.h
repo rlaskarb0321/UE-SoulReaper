@@ -25,6 +25,9 @@ public:
 	TSoftObjectPtr<UDataTable> ShopItemTable;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Server")
+	TSoftObjectPtr<UDataTable> NetworkErrorTable;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Server")
 	FString ServerBaseUrl = TEXT("http://localhost:5080");
 
 	UPROPERTY(Config, EditAnywhere, Category = "Server", meta = (ClampMin = "0.1"))
@@ -32,4 +35,7 @@ public:
 	
 	UPROPERTY(Config, EditAnywhere, Category = "Server")
 	int32 MaxRetryCount = 5;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Server", meta = (ClampMin = "0.1"))
+	float CommitTimeoutSeconds = 10.f;
 };

@@ -35,9 +35,6 @@ public:
 	ELobbyPhase GetPhase() const { return Phase; }
 
 private:
-	// 결제 응답을 기다리는 최대 시간. 넘기면 응답 못 한 플레이어를 실패로 보고 중단한다.
-	static constexpr float CommitTimeoutSeconds = 10.f;
-
 	UPROPERTY(ReplicatedUsing = OnRep_LobbyPlayers)
 	TArray<FLobbyPlayerEntry> LobbyPlayers;
 
