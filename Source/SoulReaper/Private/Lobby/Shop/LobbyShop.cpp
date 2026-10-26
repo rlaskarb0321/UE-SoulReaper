@@ -3,6 +3,7 @@
 
 #include "Lobby/Shop/LobbyShop.h"
 
+#include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
@@ -18,6 +19,9 @@ void ULobbyShop::NativeOnInitialized()
 
 	ShopSubsystem = GetGameInstance()->GetSubsystem<UShopSubsystem>();
 	SetupItemEntrySlots();
+
+	LeftButton->OnClicked.AddUniqueDynamic(this, &ULobbyShop::HandlePrevPageClicked);
+	RightButton->OnClicked.AddUniqueDynamic(this, &ULobbyShop::HandleNextPageClicked);
 
 	if (ShopSubsystem == nullptr)
 		return;
@@ -259,4 +263,21 @@ void ULobbyShop::RefreshShopItemSlots()
 			FillTarget->ClearEntry();
 		}
 	}
+
+	// 처음/마지막 페이지에서는 더 갈 수 없는 쪽 화살표를 막는다
+	LeftButton->SetIsEnabled(CurrentPage > 0);
+	RightButton->SetIsEnabled(CurrentPage < LastPage);
+}
+
+void ULobbyShop::HandlePrevPageClicked()
+{
+	// 범위를 벗어난 값은 RefreshShopItemSlots 가 보정한다
+	--CurrentPage;
+	RefreshShopItemSlots();
+}
+
+void ULobbyShop::HandleNextPageClicked()
+{
+	++CurrentPage;
+	RefreshShopItemSlots();
 }

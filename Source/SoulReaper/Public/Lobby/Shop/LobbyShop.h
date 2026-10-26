@@ -70,4 +70,10 @@ private:
 	void HandleShopItemEntryClicked(FName RowName);
 	void SetupItemEntrySlots();
 	void RefreshShopItemSlots();
+
+	UFUNCTION()
+	void HandlePrevPageClicked();
+
+	UFUNCTION()
+	void HandleNextPageClicked();
 };
